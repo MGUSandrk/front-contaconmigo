@@ -2,7 +2,7 @@ import React from 'react'
 import axios from 'axios'
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL 
-const PLAN_DE_CUENTAS_BASE_REST_API_URL = "${API_BASE_URL}/accounts";
+const PLAN_DE_CUENTAS_BASE_REST_API_URL = API_BASE_URL+"/accounts";
 
 class PlanDeCuentasServicio {
 
