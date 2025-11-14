@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL 
-const LIBRO_MAYOR_BASE_REST_API_URL = "${API_BASE_URL}/ledger";
+const LIBRO_MAYOR_BASE_REST_API_URL = API_BASE_URL+"/ledger";
 
 class LibroMayorServicio {
 
