@@ -15,6 +15,12 @@ import AddAsientoComponent from './componentes/AddAsientoComponent';
 import LibroMayorComponent from './componentes/LibroMayorComponent';
 import AddCuentaComponent from './componentes/AddCuentaComponent';
 import LandingPage from './componentes/LandingPage';
+import ListarProductosComponent from './componentes/ListarProductosComponent';
+import AddProductoComponent from './componentes/AddProductoComponent';
+import ListarClientesComponent from './componentes/ListarClientesComponent';
+import AddClienteComponent from './componentes/AddClienteComponent';
+import ListarTiposPagoComponent from './componentes/ListarTiposPagoComponent';
+import AddTipoPagoComponent from './componentes/AddTipoPagoComponent';
 
 
 function App() {
@@ -59,6 +65,30 @@ function App() {
           <Route
             path="/add-username"
             element={<PrivateRoute requiredRole="ADMIN"><AddUsuarioComponent /></PrivateRoute>}
+          />
+          <Route
+            path="/productos"
+            element={<PrivateRoute requiredRole="USER"><ListarProductosComponent /></PrivateRoute>}
+          />
+          <Route
+            path="/add-producto"
+            element={<PrivateRoute requiredRole="ADMIN"><AddProductoComponent /></PrivateRoute>}
+          />
+          <Route
+            path="/clientes"
+            element={<PrivateRoute requiredRole="USER"><ListarClientesComponent /></PrivateRoute>}
+          />
+          <Route
+            path="/add-cliente"
+            element={<PrivateRoute requiredRole="ADMIN"><AddClienteComponent /></PrivateRoute>}
+          />
+          <Route
+            path="/tipos-pago"
+            element={<PrivateRoute requiredRole="USER"><ListarTiposPagoComponent /></PrivateRoute>}
+          />
+          <Route
+            path="/add-tipo-pago"
+            element={<PrivateRoute requiredRole="ADMIN"><AddTipoPagoComponent /></PrivateRoute>}
           />
         </Routes>
       

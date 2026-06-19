@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { IoHomeOutline } from "react-icons/io5";
-import { FaUsers } from 'react-icons/fa'; 
+import { FaBoxOpen, FaCreditCard, FaUserTie, FaUsers } from 'react-icons/fa'; 
 import { LuBookOpenCheck, LuNotebookTabs } from 'react-icons/lu';
 import { MdAccountTree } from "react-icons/md";
 import { TbMapDollar } from 'react-icons/tb';
@@ -14,6 +14,9 @@ const MENU_ITEMS = [
     { to: "/asientos", icon: LuBookOpenCheck, label: "Reg. Asientos" },
     { to: "/libro-diario", icon: LuNotebookTabs, label: "Libro Diario" },
     { to: "/libro-mayor", icon: TbMapDollar, label: "Libro Mayor" },
+    { to: "/productos", icon: FaBoxOpen, label: "Productos" },
+    { to: "/clientes", icon: FaUserTie, label: "Clientes" },
+    { to: "/tipos-pago", icon: FaCreditCard, label: "Tipos de Pago" },
 ];
 
 // --- ESTILOS DE MARCA AJUSTADOS ---
@@ -117,9 +120,7 @@ const SideBarComponent = () => {
                 
                 {/* Enlace de Administrador Condicional */}
                 {userRole === 'ADMIN' && (
-                    <li className="nav-item w-100">
-                        {renderLink({ to: '/usuarios', icon: FaUsers, label: 'Gestión Usuarios' })}
-                    </li>
+                    renderLink({ to: '/usuarios', icon: FaUsers, label: 'Gestión Usuarios' })
                 )}
             </ul>
         </div>
