@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import UsuarioServicio from '../servicios/UsuarioServicio'
+import UsuarioServicio from '../../servicios/UsuarioServicio'
 import { Link, useNavigate } from 'react-router-dom'
 import { FaUserPlus, FaSave, FaTimesCircle } from 'react-icons/fa'
 

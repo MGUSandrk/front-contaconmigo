@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaBoxOpen, FaPlusCircle, FaSearch, FaSpinner } from 'react-icons/fa';
-import SideBarComponent from './SideBarComponent';
-import ProductoServicio from '../servicios/ProductoServicio';
-import { getRoleFromToken } from '../utiles/authUtils';
+import SideBarComponent from '../dashboard/SideBarComponent';
+import ProductoServicio from '../../servicios/ProductoServicio';
+import { getRoleFromToken } from '../../utiles/authUtils';
 
 const PRIMARY_COLOR = '#A8DADC';
 const TEXT_COLOR = '#2C3E50';

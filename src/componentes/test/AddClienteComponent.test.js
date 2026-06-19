@@ -1,10 +1,10 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import AddClienteComponent from './AddClienteComponent';
-import ClienteServicio from '../servicios/ClienteServicio';
+import AddClienteComponent from '../clientes/AddClienteComponent';
+import ClienteServicio from '../../servicios/ClienteServicio';
 
-jest.mock('../servicios/ClienteServicio', () => ({
+jest.mock('../../servicios/ClienteServicio', () => ({
     crearCliente: jest.fn(),
 }));
 

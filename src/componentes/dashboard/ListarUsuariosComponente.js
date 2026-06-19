@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import UsuarioServicio from '../servicios/UsuarioServicio';
+import UsuarioServicio from '../../servicios/UsuarioServicio';
 import { Link } from 'react-router-dom';
 import SideBarComponent from './SideBarComponent';
 import { FaUsers, FaUserPlus, FaTrashAlt, FaSpinner } from 'react-icons/fa';

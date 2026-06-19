@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import PlanDeCuentasServicio from '../servicios/PlanDeCuentasServicio';
+import PlanDeCuentasServicio from '../../servicios/PlanDeCuentasServicio';
 import { useNavigate } from 'react-router-dom';
 import { LuPencilLine } from "react-icons/lu";
 import { FaPlusCircle, FaTrashAlt, FaUndo } from 'react-icons/fa'; // Iconos para Agregar, Desactivar, Reactivar
-import { getRoleFromToken } from '../utiles/authUtils';
-import RefreshService from '../servicios/RefreshService';
+import { getRoleFromToken } from '../../utiles/authUtils';
+import RefreshService from '../../servicios/RefreshService';
 import { MdAccountTree } from 'react-icons/md';
 
 // --- CONSTANTES DE DISEÑO ---

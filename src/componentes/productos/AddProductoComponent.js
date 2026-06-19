@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaBoxOpen, FaPlus, FaSave, FaTimesCircle, FaTrash } from 'react-icons/fa';
-import SideBarComponent from './SideBarComponent';
-import ProductoServicio from '../servicios/ProductoServicio';
+import SideBarComponent from '../dashboard/SideBarComponent';
+import ProductoServicio from '../../servicios/ProductoServicio';
 
 const PRIMARY_COLOR = '#A8DADC';
 const TEXT_COLOR = '#2C3E50';

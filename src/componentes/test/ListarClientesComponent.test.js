@@ -1,13 +1,13 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import ListarClientesComponent from './ListarClientesComponent';
-import ClienteServicio from '../servicios/ClienteServicio';
+import ListarClientesComponent from '../clientes/ListarClientesComponent';
+import ClienteServicio from '../../servicios/ClienteServicio';
 
-jest.mock('../servicios/ClienteServicio', () => ({
+jest.mock('../../servicios/ClienteServicio', () => ({
     listarClientes: jest.fn(),
 }));
 
-jest.mock('../utiles/authUtils', () => ({
+jest.mock('../../utiles/authUtils', () => ({
     getRoleFromToken: () => 'ADMIN',
 }));
 

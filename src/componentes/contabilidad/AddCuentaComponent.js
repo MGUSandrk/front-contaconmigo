@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import PlanDeCuentasServicio from '../servicios/PlanDeCuentasServicio';
+import PlanDeCuentasServicio from '../../servicios/PlanDeCuentasServicio';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import SideBarComponent from './SideBarComponent';
+import SideBarComponent from '../dashboard/SideBarComponent';
 import { FaSave, FaTimesCircle, FaPlusCircle } from 'react-icons/fa';
-import RefreshService from '../servicios/RefreshService';
+import RefreshService from '../../servicios/RefreshService';
 
 // --- CONSTANTES DE ESTILO ---
 const PRIMARY_COLOR = '#A8DADC';  

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import SidebarCuentasComponent from './SidebarCuentasComponent';
-import SideBarComponent from './SideBarComponent';
+import SideBarComponent from '../dashboard/SideBarComponent';
 import InfoCuentasComponent from './InfoCuentasComponent';
 
 const PlanDeCuentasComponent = () => {

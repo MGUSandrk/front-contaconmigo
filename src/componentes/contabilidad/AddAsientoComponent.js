@@ -3,9 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 // Nota: Dejé las importaciones de servicios y componentes internos tal como estaban, 
 // asumiendo que las rutas son correctas en tu proyecto local, pero el error 
 // se mitigará al usar las librerías de íconos correctamente.
-import AsientoServicio from '../servicios/AsientoServicio';
-import SideBarComponent from './SideBarComponent';
-import PlanDeCuentasServicio from '../servicios/PlanDeCuentasServicio';
+import AsientoServicio from '../../servicios/AsientoServicio';
+import SideBarComponent from '../dashboard/SideBarComponent';
+import PlanDeCuentasServicio from '../../servicios/PlanDeCuentasServicio';
 // Corregido: Asumo que estos módulos están disponibles en el entorno.
 import { FaSave, FaTimesCircle, FaPlus, FaCalculator, FaTrash } from 'react-icons/fa';
 import { LuBookOpenCheck } from 'react-icons/lu';

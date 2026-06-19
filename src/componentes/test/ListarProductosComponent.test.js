@@ -1,14 +1,14 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import ListarProductosComponent from './ListarProductosComponent';
-import ProductoServicio from '../servicios/ProductoServicio';
+import ListarProductosComponent from '../productos/ListarProductosComponent';
+import ProductoServicio from '../../servicios/ProductoServicio';
 
-jest.mock('../servicios/ProductoServicio', () => ({
+jest.mock('../../servicios/ProductoServicio', () => ({
     listarProductos: jest.fn(),
 }));
 
-jest.mock('../utiles/authUtils', () => ({
+jest.mock('../../utiles/authUtils', () => ({
     getRoleFromToken: () => 'ADMIN',
 }));
 

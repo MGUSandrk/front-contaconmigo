@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import TreeView from 'react-treeview';
 import 'react-treeview/react-treeview.css';
-import PlanDeCuentasServicio from '../servicios/PlanDeCuentasServicio';
+import PlanDeCuentasServicio from '../../servicios/PlanDeCuentasServicio';
 import { useNavigate } from 'react-router-dom';
-import { getRoleFromToken } from '../utiles/authUtils';
-import RefreshService from '../servicios/RefreshService';
+import { getRoleFromToken } from '../../utiles/authUtils';
+import RefreshService from '../../servicios/RefreshService';
 import { FaPlusCircle } from 'react-icons/fa';
 
 // --- CONSTANTES DE DISEÑO ---

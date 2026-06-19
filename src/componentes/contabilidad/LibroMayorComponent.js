@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import SideBarComponent from './SideBarComponent';
-import PlanDeCuentasServicio from '../servicios/PlanDeCuentasServicio';
+import SideBarComponent from '../dashboard/SideBarComponent';
+import PlanDeCuentasServicio from '../../servicios/PlanDeCuentasServicio';
 import { Link } from 'react-router-dom';
-import LibroMayorServicio from '../servicios/LibroMayorServicio';
+import LibroMayorServicio from '../../servicios/LibroMayorServicio';
 import { FaCalendarAlt, FaChartLine, FaTimesCircle, FaCoins, FaSearch } from 'react-icons/fa';
 
 // --- CONSTANTES DE ESTILO ---

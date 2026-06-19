@@ -1,26 +1,25 @@
 import logo from './logo.svg';
 import './App.css';
-import HeaderComponente from './componentes/HeaderComponente';
-import FooterComponente from './componentes/FooterComponente';
-
-import ListarUsuariosComponente from './componentes/ListarUsuariosComponente';
+import HeaderComponente from './componentes/dashboard/HeaderComponente';
+import FooterComponente from './componentes/dashboard/FooterComponente';
+import ListarUsuariosComponente from './componentes/dashboard/ListarUsuariosComponente';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import AddUsuarioComponent from './componentes/AddUsuarioComponent';
+import AddUsuarioComponent from './componentes/dashboard/AddUsuarioComponent';
 import LoginFormComponent from './componentes/LoginFormComponent';
-import InicioComponent from './componentes/InicioComponent';
-import PrivateRoute from './componentes/PrivateRouteInicio';
-import PlanDeCuentasComponent from './componentes/PlanDeCuentasComponent';
-import LibroDiarioComponent from './componentes/LibroDiarioComponent';
-import AddAsientoComponent from './componentes/AddAsientoComponent';
-import LibroMayorComponent from './componentes/LibroMayorComponent';
-import AddCuentaComponent from './componentes/AddCuentaComponent';
+import InicioComponent from './componentes/dashboard/InicioComponent';
+import PrivateRoute from './utiles/PrivateRouteInicio';
+import PlanDeCuentasComponent from './componentes/contabilidad/PlanDeCuentasComponent';
+import LibroDiarioComponent from './componentes/contabilidad/LibroDiarioComponent';
+import AddAsientoComponent from './componentes/contabilidad/AddAsientoComponent';
+import LibroMayorComponent from './componentes/contabilidad/LibroMayorComponent';
+import AddCuentaComponent from './componentes/contabilidad/AddCuentaComponent';
 import LandingPage from './componentes/LandingPage';
-import ListarProductosComponent from './componentes/ListarProductosComponent';
-import AddProductoComponent from './componentes/AddProductoComponent';
-import ListarClientesComponent from './componentes/ListarClientesComponent';
-import AddClienteComponent from './componentes/AddClienteComponent';
-import ListarTiposPagoComponent from './componentes/ListarTiposPagoComponent';
-import AddTipoPagoComponent from './componentes/AddTipoPagoComponent';
+import ListarProductosComponent from './componentes/productos/ListarProductosComponent';
+import AddProductoComponent from './componentes/productos/AddProductoComponent';
+import ListarClientesComponent from './componentes/clientes/ListarClientesComponent';
+import AddClienteComponent from './componentes/clientes/AddClienteComponent';
+import ListarTiposPagoComponent from './componentes/pagos/ListarTiposPagoComponent';
+import AddTipoPagoComponent from './componentes/pagos/AddTipoPagoComponent';
 
 
 function App() {

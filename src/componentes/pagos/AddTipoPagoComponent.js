@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaCreditCard, FaSave, FaTimesCircle } from 'react-icons/fa';
-import SideBarComponent from './SideBarComponent';
-import PaymentTypeServicio from '../servicios/PaymentTypeServicio';
-import PlanDeCuentasServicio from '../servicios/PlanDeCuentasServicio';
+import SideBarComponent from '../dashboard/SideBarComponent';
+import PaymentTypeServicio from '../../servicios/PaymentTypeServicio';
+import PlanDeCuentasServicio from '../../servicios/PlanDeCuentasServicio';
 
 const PRIMARY_COLOR = '#A8DADC';
 const TEXT_COLOR = '#2C3E50';

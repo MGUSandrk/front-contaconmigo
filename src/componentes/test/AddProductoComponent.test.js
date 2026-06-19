@@ -1,10 +1,10 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import AddProductoComponent from './AddProductoComponent';
-import ProductoServicio from '../servicios/ProductoServicio';
+import AddProductoComponent from '../productos/AddProductoComponent';
+import ProductoServicio from '../../servicios/ProductoServicio';
 
-jest.mock('../servicios/ProductoServicio', () => ({
+jest.mock('../../servicios/ProductoServicio', () => ({
     crearProducto: jest.fn(),
 }));
 

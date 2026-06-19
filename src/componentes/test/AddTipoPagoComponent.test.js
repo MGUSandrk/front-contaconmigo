@@ -1,15 +1,15 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import AddTipoPagoComponent from './AddTipoPagoComponent';
-import PaymentTypeServicio from '../servicios/PaymentTypeServicio';
-import PlanDeCuentasServicio from '../servicios/PlanDeCuentasServicio';
+import AddTipoPagoComponent from '../pagos/AddTipoPagoComponent';
+import PaymentTypeServicio from '../../servicios/PaymentTypeServicio';
+import PlanDeCuentasServicio from '../../servicios/PlanDeCuentasServicio';
 
-jest.mock('../servicios/PaymentTypeServicio', () => ({
+jest.mock('../../servicios/PaymentTypeServicio', () => ({
     crearTipoPago: jest.fn(),
 }));
 
-jest.mock('../servicios/PlanDeCuentasServicio', () => ({
+jest.mock('../../servicios/PlanDeCuentasServicio', () => ({
     getBalanceAccounts: jest.fn(),
 }));
 

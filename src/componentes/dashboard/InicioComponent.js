@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import SideBarComponent from './SideBarComponent';
 import { FaFileInvoiceDollar, FaChartLine, FaDollarSign, FaTools, FaPlusCircle, FaListAlt } from 'react-icons/fa'; 
 import { Link } from 'react-router-dom';
-import PlanDeCuentasServicio from '../servicios/PlanDeCuentasServicio';
+import PlanDeCuentasServicio from '../../servicios/PlanDeCuentasServicio';
 
 // Función auxiliar para formatear números como moneda ARS
 const formatCurrency = (number) => {

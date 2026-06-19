@@ -5,7 +5,7 @@ import { FaBoxOpen, FaCreditCard, FaUserTie, FaUsers } from 'react-icons/fa';
 import { LuBookOpenCheck, LuNotebookTabs } from 'react-icons/lu';
 import { MdAccountTree } from "react-icons/md";
 import { TbMapDollar } from 'react-icons/tb';
-import { getRoleFromToken } from '../utiles/authUtils';
+import { getRoleFromToken } from '../../utiles/authUtils';
 
 // --- ICONOS Y ETIQUETAS ---
 const MENU_ITEMS = [
@@ -19,9 +19,9 @@ const MENU_ITEMS = [
     { to: "/tipos-pago", icon: FaCreditCard, label: "Tipos de Pago" },
 ];
 
-// --- ESTILOS DE MARCA AJUSTADOS ---
-const BASE_WIDTH = '4.5rem';    
+const BASE_WIDTH = '3.9rem';    
 const EXPANDED_WIDTH = '14rem'; 
+const ICON_RAIL_WIDTH = BASE_WIDTH;
 const PRIMARY_COLOR = '#A8DADC';  
 const TEXT_COLOR = '#2C3E50';     
 const BACKGROUND_COLOR = '#F8F9FA'; 
@@ -37,18 +37,17 @@ const SideBarComponent = () => {
     const renderLink = (item) => {
         const isActive = location.pathname === item.to;
 
-        // CLAVE 1: Ajuste de padding: usa 0 de padding horizontal si está colapsado para permitir el centrado
-        const linkPadding = isExpanded ? '15px 15px' : '15px 0'; 
-        
         const linkStyle = {
             display: 'flex',
             alignItems: 'center',
-            padding: linkPadding, // Aplicamos el padding condicional
+            minHeight: '55px',
+            padding: '0',
             textDecoration: 'none',
             fontWeight: isActive ? '600' : '400',
             backgroundColor: isActive ? PRIMARY_COLOR : 'transparent',
             color: isActive ? TEXT_COLOR : TEXT_COLOR, 
             borderRadius: '0',
+            overflow: 'hidden',
             transition: 'background-color 0.2s ease, color 0.2s ease'
         };
 
@@ -57,17 +56,29 @@ const SideBarComponent = () => {
             color: TEXT_COLOR,
         }
 
-        // CLAVE 2: Contenedor para forzar el centrado
-        const iconContainerStyle = {
+        const iconRailStyle = {
             display: 'flex',
             alignItems: 'center',
-            justifyContent: isExpanded ? 'flex-start' : 'center', // Centrado si colapsado
-            width: isExpanded ? 'auto' : '100%', // Ancho completo si colapsado
+            justifyContent: 'center',
+            width: ICON_RAIL_WIDTH,
+            minWidth: ICON_RAIL_WIDTH,
+            flexShrink: 0,
+            transform: isExpanded ? 'translateX(-4px)' : 'translateX(0)',
+            transition: 'transform 0.45s ease',
         };
 
+        const labelStyle = {
+            display: 'inline-block',
+            maxWidth: isExpanded ? '9rem' : '0',
+            opacity: isExpanded ? 1 : 0,
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            transform: isExpanded ? 'translateX(0)' : 'translateX(-6px)',
+            transition: 'max-width 0.36s ease, opacity 0.22s ease, transform 0.36s ease',
+        };
 
         return (
-            <li className="nav-item w-100" key={item.to}>
+            <li className="nav-item w-90" key={item.to}>
                 <Link 
                     to={item.to}
                     style={linkStyle}
@@ -78,19 +89,21 @@ const SideBarComponent = () => {
                         e.currentTarget.style.backgroundColor = linkStyle.backgroundColor;
                     }}
                 >
-                    <div style={iconContainerStyle}> {/* Contenedor para centrar el icono */}
+                    <div
+                        style={iconRailStyle}
+                        data-testid={`sidebar-icon-rail-${item.to}`}
+                    >
                         <item.icon 
                             size={25} 
                             color={isActive ? TEXT_COLOR : ICON_INACTIVE_COLOR}
                         />
-                        
-                        {/* Texto (solo visible si está expandido) */}
-                        {isExpanded && (
-                            <span style={{ marginLeft: '1rem', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-                                {item.label}
-                            </span>
-                        )}
                     </div>
+                    <span
+                        style={labelStyle}
+                        data-testid={`sidebar-label-${item.to}`}
+                    >
+                        {item.label}
+                    </span>
                 </Link>
             </li>
         );
@@ -98,11 +111,12 @@ const SideBarComponent = () => {
 
     return (
         <div 
-            className="d-flex flex-column flex-shrink-0 vh-100 border-end" 
+            className="d-flex flex-column flex-shrink-0 vh-90 border-end" 
+            data-testid="main-sidebar"
             style={{ 
                 width: isExpanded ? EXPANDED_WIDTH : BASE_WIDTH,
                 backgroundColor: BACKGROUND_COLOR, 
-                transition: 'width 0.3s ease',
+                transition: 'width 0.38s ease',
                 position: 'sticky', 
                 top: 0,
                 zIndex: 10,

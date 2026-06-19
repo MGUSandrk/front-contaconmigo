@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import SideBarComponent from './SideBarComponent';
+import SideBarComponent from '../dashboard/SideBarComponent';
 import { Link } from 'react-router-dom';
-import LibroDiarioServicio from '../servicios/LibroDiarioServicio';
+import LibroDiarioServicio from '../../servicios/LibroDiarioServicio';
 import { FaCalendarAlt, FaPlusSquare, FaTimesCircle, FaChartLine, FaSearch } from 'react-icons/fa';
 import { LuBookOpenCheck } from 'react-icons/lu';
 
