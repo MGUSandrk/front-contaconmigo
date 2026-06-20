@@ -17,9 +17,9 @@ test('mantiene estable la columna de iconos y anima el texto al expandir y cerra
     const iconRail = screen.getByTestId('sidebar-icon-rail-/inicio');
     const label = screen.getByTestId('sidebar-label-/inicio');
 
-    expect(sidebar).toHaveStyle({ width: '4.5rem' });
+    expect(sidebar).toHaveStyle({ width: '3.9rem' });
     expect(iconRail).toHaveStyle({
-        width: '4.5rem',
+        width: '3.9rem',
         transform: 'translateX(0)',
     });
     expect(label).toHaveStyle({
@@ -31,7 +31,7 @@ test('mantiene estable la columna de iconos y anima el texto al expandir y cerra
 
     expect(sidebar).toHaveStyle({ width: '14rem' });
     expect(iconRail).toHaveStyle({
-        width: '4.5rem',
+        width: '3.9rem',
         transform: 'translateX(-4px)',
     });
     expect(label).toHaveStyle({
@@ -49,4 +49,14 @@ test('mantiene estable la columna de iconos y anima el texto al expandir y cerra
         opacity: '0',
         maxWidth: '0',
     });
+});
+
+test('muestra el acceso a ventas', () => {
+    render(
+        <MemoryRouter initialEntries={['/inicio']}>
+            <SideBarComponent />
+        </MemoryRouter>
+    );
+
+    expect(screen.getByRole('link', { name: /ventas/i })).toHaveAttribute('href', '/add-venta');
 });

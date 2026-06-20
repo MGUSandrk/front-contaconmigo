@@ -20,6 +20,7 @@ import ListarClientesComponent from './componentes/clientes/ListarClientesCompon
 import AddClienteComponent from './componentes/clientes/AddClienteComponent';
 import ListarTiposPagoComponent from './componentes/pagos/ListarTiposPagoComponent';
 import AddTipoPagoComponent from './componentes/pagos/AddTipoPagoComponent';
+import AddVentaComponent from './componentes/ventas/AddVentaComponent';
 
 
 function App() {
@@ -88,6 +89,10 @@ function App() {
           <Route
             path="/add-tipo-pago"
             element={<PrivateRoute requiredRole="ADMIN"><AddTipoPagoComponent /></PrivateRoute>}
+          />
+          <Route
+            path="/add-venta"
+            element={<PrivateRoute requiredRole="USER"><AddVentaComponent /></PrivateRoute>}
           />
         </Routes>
       

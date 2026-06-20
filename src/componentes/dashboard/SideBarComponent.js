@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { IoHomeOutline } from "react-icons/io5";
-import { FaBoxOpen, FaCreditCard, FaUserTie, FaUsers } from 'react-icons/fa'; 
+import { FaBoxOpen, FaCreditCard, FaShoppingCart, FaUserTie, FaUsers } from 'react-icons/fa'; 
 import { LuBookOpenCheck, LuNotebookTabs } from 'react-icons/lu';
 import { MdAccountTree } from "react-icons/md";
 import { TbMapDollar } from 'react-icons/tb';
@@ -10,6 +10,7 @@ import { getRoleFromToken } from '../../utiles/authUtils';
 // --- ICONOS Y ETIQUETAS ---
 const MENU_ITEMS = [
     { to: "/inicio", icon: IoHomeOutline, label: "Inicio" },
+    { to: "/add-venta", icon: FaShoppingCart, label: "Ventas" },
     { to: "/plan-de-cuentas", icon: MdAccountTree, label: "Plan de Cuentas" },
     { to: "/asientos", icon: LuBookOpenCheck, label: "Reg. Asientos" },
     { to: "/libro-diario", icon: LuNotebookTabs, label: "Libro Diario" },
