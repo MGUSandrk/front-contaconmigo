@@ -1,23 +1,25 @@
 import React, { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { IoHomeOutline } from "react-icons/io5";
-import { FaBoxOpen, FaCreditCard, FaShoppingCart, FaUserTie, FaUsers } from 'react-icons/fa'; 
+import { FaBoxOpen, FaCreditCard, FaUsers } from 'react-icons/fa'; 
+import { BsBoxSeam } from 'react-icons/bs';
+import { TbUserDollar, TbUsers, TbCreditCard, TbShoppingCartPlus} from "react-icons/tb";
 import { LuBookOpenCheck, LuNotebookTabs } from 'react-icons/lu';
-import { MdAccountTree } from "react-icons/md";
+import { MdOutlineAccountTree } from "react-icons/md";
 import { TbMapDollar } from 'react-icons/tb';
 import { getRoleFromToken } from '../../utiles/authUtils';
 
 // --- ICONOS Y ETIQUETAS ---
 const MENU_ITEMS = [
     { to: "/inicio", icon: IoHomeOutline, label: "Inicio" },
-    { to: "/add-venta", icon: FaShoppingCart, label: "Ventas" },
-    { to: "/plan-de-cuentas", icon: MdAccountTree, label: "Plan de Cuentas" },
+    { to: "/plan-de-cuentas", icon: MdOutlineAccountTree, label: "Plan de Cuentas" },
     { to: "/asientos", icon: LuBookOpenCheck, label: "Reg. Asientos" },
     { to: "/libro-diario", icon: LuNotebookTabs, label: "Libro Diario" },
     { to: "/libro-mayor", icon: TbMapDollar, label: "Libro Mayor" },
-    { to: "/productos", icon: FaBoxOpen, label: "Productos" },
-    { to: "/clientes", icon: FaUserTie, label: "Clientes" },
-    { to: "/tipos-pago", icon: FaCreditCard, label: "Tipos de Pago" },
+    { to: "/productos", icon: BsBoxSeam, label: "Productos" },
+    { to: "/clientes", icon: TbUserDollar, label: "Clientes" },
+    { to: "/add-venta", icon: TbShoppingCartPlus, label: "Agregar Venta" },
+    { to: "/tipos-pago", icon: TbCreditCard, label: "Tipos de Pago" },
 ];
 
 const BASE_WIDTH = '3.9rem';    
@@ -135,7 +137,7 @@ const SideBarComponent = () => {
                 
                 {/* Enlace de Administrador Condicional */}
                 {userRole === 'ADMIN' && (
-                    renderLink({ to: '/usuarios', icon: FaUsers, label: 'Gestión Usuarios' })
+                    renderLink({ to: '/usuarios', icon: TbUsers, label: 'Gestión Usuarios' })
                 )}
             </ul>
         </div>

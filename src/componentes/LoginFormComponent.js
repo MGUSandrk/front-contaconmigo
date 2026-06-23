@@ -73,7 +73,6 @@ const LoginFormComponent = () => {
     } else {
       const user = { username, password }
       LoginServicio.authUsuario(user).then((response) => {
-        console.log(response.data);
         const token = response.data.token;
         localStorage.setItem('token', token)
 
