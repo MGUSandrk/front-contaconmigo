@@ -35,8 +35,7 @@ const AddUsuarioComponent = () => {
     const user = { username, password, role };
     
     // 2. Llamada al servicio
-    UsuarioServicio.crearUsuario( user ).then((response) => {
-      console.log("Usuario creado:", response.data);
+    UsuarioServicio.crearUsuario( user ).then(() => {
       setSuccess(`Usuario '${username}' registrado con éxito.`);
       
       // Limpiar formulario
@@ -58,7 +57,7 @@ const AddUsuarioComponent = () => {
   }
   
   return (
-    <div className='d-flex justify-content-center align-items-center' style={{ backgroundColor: BACKGROUND_COLOR, minHeight: '100vh' }}>
+    <div className='d-flex justify-content-center align-items-center' style={{ backgroundColor: BACKGROUND_COLOR, minHeight: 'var(--app-content-min-height)' }}>
       <div className='col-lg-6 col-md-8 col-sm-10'>
         {/* Tarjeta principal del Registro de Usuario */}
         <div className='card shadow-lg' style={{ borderRadius: '15px', backgroundColor: CARD_COLOR }}>
@@ -133,7 +132,8 @@ const AddUsuarioComponent = () => {
                   style={{ borderColor: PRIMARY_COLOR }}
                 >
                   <option value='ADMIN'>Administrador</option>
-                  <option value='USER'>Usuario</option>
+                  <option value='COUNTABLE'>Contable</option>
+                  <option value='SELLER'>Vendedor</option>
                 </select>
               </div>
 

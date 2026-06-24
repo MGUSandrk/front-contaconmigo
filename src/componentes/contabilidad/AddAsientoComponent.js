@@ -191,7 +191,7 @@ const AddAsientoComponent = () => {
   );
 
   return (
-    <div className='d-flex' style={{ backgroundColor: BACKGROUND_COLOR, minHeight: '100vh' }}>
+    <div className='d-flex' style={{ backgroundColor: BACKGROUND_COLOR, minHeight: 'var(--app-content-min-height)' }}>
       <SideBarComponent />
       
       <div className='flex-grow-1 p-0 p-md-3'>

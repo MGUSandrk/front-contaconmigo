@@ -15,7 +15,7 @@ const PlanDeCuentasComponent = () => {
   };
 
   return (
-    <div className='d-flex'>
+    <div className='d-flex' style={{ minHeight: 'var(--app-content-min-height)' }}>
         <SideBarComponent />
         {/* SidebarCuentasComponent actualiza selectedAccountId cuando el usuario hace clic */}
         <SidebarCuentasComponent onSelectAccount={setSelectedAccountId} />

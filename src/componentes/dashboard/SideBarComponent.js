@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { IoHomeOutline } from "react-icons/io5";
-import { FaBoxOpen, FaCreditCard, FaUsers } from 'react-icons/fa'; 
+import {LuBuilding} from 'react-icons/lu';
 import { BsBoxSeam } from 'react-icons/bs';
-import { TbUserDollar, TbUsers, TbCreditCard, TbShoppingCartPlus} from "react-icons/tb";
+import { TbUserDollar, TbUsers, TbCreditCard, TbShoppingCartPlus } from "react-icons/tb";
 import { LuBookOpenCheck, LuNotebookTabs } from 'react-icons/lu';
 import { MdOutlineAccountTree } from "react-icons/md";
 import { TbMapDollar } from 'react-icons/tb';
@@ -140,6 +140,16 @@ const SideBarComponent = () => {
                     renderLink({ to: '/usuarios', icon: TbUsers, label: 'Gestión Usuarios' })
                 )}
             </ul>
+
+            {userRole === 'ADMIN' && (
+                <ul
+                    className="nav nav-pills flex-column"
+                    data-testid="sidebar-bottom-section"
+                    style={{ marginTop: 'auto', paddingBottom: '15px' }}
+                >
+                    {renderLink({ to: '/empresa', icon: LuBuilding, label: 'Empresa' })}
+                </ul>
+            )}
         </div>
     );
 };

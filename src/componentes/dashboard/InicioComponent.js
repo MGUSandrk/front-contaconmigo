@@ -148,7 +148,7 @@ const InicioComponent = () => {
 
 
     return (
-        <div className='d-flex'>
+        <div className='d-flex' style={{ minHeight: 'var(--app-content-min-height)' }}>
             <SideBarComponent />
             
             <div style={{ flexGrow: 1, padding: '30px', paddingBottom: '80px' }}> 

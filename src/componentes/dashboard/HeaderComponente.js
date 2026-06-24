@@ -13,7 +13,9 @@ const HeaderComponente = () => {
     navbar: {
         background: '#FFFFFF',
         borderBottom: '1px solid #E8E8E8', 
-        padding: '0.50rem 0'
+        padding: '0.50rem 0',
+        height: 'var(--app-header-height)',
+        boxSizing: 'border-box'
     },
     brandText: {
         color: '#2C3E50', 

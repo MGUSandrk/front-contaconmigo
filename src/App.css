@@ -1,3 +1,8 @@
+:root {
+  --app-header-height: 57px;
+  --app-content-min-height: calc(100vh - var(--app-header-height));
+}
+
 .footer{
   position: absolute;
   bottom: 0;

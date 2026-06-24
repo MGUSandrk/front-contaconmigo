@@ -16,7 +16,7 @@ const LoginFormComponent = () => {
     mainContainer: {
         // Fondo suave y limpio de la landing page
         background: 'linear-gradient(135deg, #F5E6E8 0%, #E8F4F8 100%)',
-        minHeight: '100vh', 
+        minHeight: 'var(--app-content-min-height)', 
         display: 'flex',
         // Centrado vertical
         alignItems: 'center',

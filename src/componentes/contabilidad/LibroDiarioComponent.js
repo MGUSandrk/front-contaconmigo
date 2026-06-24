@@ -205,7 +205,7 @@ const LibroDiarioComponent = () => {
 
     // 2. Renderizado del componente
     return (
-        <div className='d-flex' style={{ backgroundColor: BACKGROUND_COLOR, minHeight: '100vh' }}>
+        <div className='d-flex' style={{ backgroundColor: BACKGROUND_COLOR, minHeight: 'var(--app-content-min-height)' }}>
             {/* Componente de la barra lateral */}
             <SideBarComponent />
             

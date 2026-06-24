@@ -1,10 +1,15 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import SideBarComponent from '../dashboard/SideBarComponent';
+import { getRoleFromToken } from '../../utiles/authUtils';
 
 jest.mock('../../utiles/authUtils', () => ({
-    getRoleFromToken: () => 'USER',
+    getRoleFromToken: jest.fn(),
 }));
+
+beforeEach(() => {
+    getRoleFromToken.mockReturnValue('USER');
+});
 
 test('mantiene estable la columna de iconos y anima el texto al expandir y cerrar', () => {
     render(
@@ -58,5 +63,20 @@ test('muestra el acceso a ventas', () => {
         </MemoryRouter>
     );
 
-    expect(screen.getByRole('link', { name: /ventas/i })).toHaveAttribute('href', '/add-venta');
+    expect(screen.getByRole('link', { name: /venta/i })).toHaveAttribute('href', '/add-venta');
+});
+
+test('muestra el acceso a empresa abajo para administradores', () => {
+    getRoleFromToken.mockReturnValue('ADMIN');
+
+    render(
+        <MemoryRouter initialEntries={['/inicio']}>
+            <SideBarComponent />
+        </MemoryRouter>
+    );
+
+    const companyLink = screen.getByRole('link', { name: /empresa/i });
+
+    expect(companyLink).toHaveAttribute('href', '/empresa');
+    expect(companyLink.closest('[data-testid="sidebar-bottom-section"]')).toBeInTheDocument();
 });

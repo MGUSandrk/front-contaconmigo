@@ -98,7 +98,7 @@ const AddCuentaComponent = () => {
     }
 
     return (
-        <div className='d-flex vh-100' style={{ backgroundColor: BACKGROUND_COLOR }}>
+        <div className='d-flex' style={{ backgroundColor: BACKGROUND_COLOR, minHeight: 'var(--app-content-min-height)' }}>
             <SideBarComponent />
             
             <div className='flex-grow-1 p-5 d-flex justify-content-center'>

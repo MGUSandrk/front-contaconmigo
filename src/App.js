@@ -1,7 +1,5 @@
-import logo from './logo.svg';
 import './App.css';
 import HeaderComponente from './componentes/dashboard/HeaderComponente';
-import FooterComponente from './componentes/dashboard/FooterComponente';
 import ListarUsuariosComponente from './componentes/dashboard/ListarUsuariosComponente';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import AddUsuarioComponent from './componentes/dashboard/AddUsuarioComponent';
@@ -21,6 +19,7 @@ import AddClienteComponent from './componentes/clientes/AddClienteComponent';
 import ListarTiposPagoComponent from './componentes/pagos/ListarTiposPagoComponent';
 import AddTipoPagoComponent from './componentes/pagos/AddTipoPagoComponent';
 import AddVentaComponent from './componentes/ventas/AddVentaComponent';
+import EmpresaComponent from './componentes/empresa/EmpresaComponent';
 
 
 function App() {
@@ -93,6 +92,10 @@ function App() {
           <Route
             path="/add-venta"
             element={<PrivateRoute requiredRole="USER"><AddVentaComponent /></PrivateRoute>}
+          />
+          <Route
+            path="/empresa"
+            element={<PrivateRoute requiredRole="ADMIN"><EmpresaComponent /></PrivateRoute>}
           />
         </Routes>
       
