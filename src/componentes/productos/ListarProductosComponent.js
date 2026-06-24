@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaBoxOpen, FaPlusCircle, FaSearch, FaSpinner } from 'react-icons/fa';
+import { FaBoxOpen, FaEye, FaPlusCircle, FaSearch, FaSpinner, FaTimes } from 'react-icons/fa';
 import SideBarComponent from '../dashboard/SideBarComponent';
 import ProductoServicio from '../../servicios/ProductoServicio';
 import { getRoleFromToken } from '../../utiles/authUtils';
@@ -30,7 +30,10 @@ const getLots = (product) => {
 };
 
 const getTotalStock = (product) => {
-    return getLots(product).reduce((total, lot) => total + (parseInt(lot.stock, 10) || 0), 0);
+    if (!product || product.totalStock === null || typeof product.totalStock === 'undefined') {
+        return 0;
+    }
+    return parseInt(product.totalStock, 10) || 0;
 };
 
 const ListarProductosComponent = () => {
@@ -38,6 +41,7 @@ const ListarProductosComponent = () => {
     const [filtroNombre, setFiltroNombre] = useState('');
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState('');
+    const [productoSeleccionado, setProductoSeleccionado] = useState(null);
 
     const userRole = getRoleFromToken();
     const isAdmin = userRole === 'ADMIN';
@@ -67,6 +71,8 @@ const ListarProductosComponent = () => {
         }
         return productos.filter(product => (product.name || '').toLowerCase().includes(filtro));
     }, [productos, filtroNombre]);
+
+    const lotesSeleccionados = getLots(productoSeleccionado);
 
     return (
         <div className='d-flex' style={{ backgroundColor: BACKGROUND_COLOR, minHeight: 'var(--app-content-min-height)' }}>
@@ -141,7 +147,20 @@ const ListarProductosComponent = () => {
                                                 <tr key={product.id || product.name}>
                                                     <td>{product.name}</td>
                                                     <td className='text-end'>{formatCurrency(product.salePrice)}</td>
-                                                    <td className='text-center'>{getLots(product).length}</td>
+                                                    <td className='text-center'>
+                                                        <div className='d-inline-flex align-items-center justify-content-center gap-2'>
+                                                            <span>{getLots(product).length}</span>
+                                                            <button
+                                                                type='button'
+                                                                className='btn btn-outline-info btn-sm d-inline-flex align-items-center'
+                                                                aria-label={`Ver lotes de ${product.name}`}
+                                                                title={`Ver lotes de ${product.name}`}
+                                                                onClick={() => setProductoSeleccionado(product)}
+                                                            >
+                                                                <FaEye />
+                                                            </button>
+                                                        </div>
+                                                    </td>
                                                     <td className='text-end'>{getTotalStock(product)}</td>
                                                 </tr>
                                             ))}
@@ -157,6 +176,61 @@ const ListarProductosComponent = () => {
                     </div>
                 </div>
             </div>
+
+            {productoSeleccionado && (
+                <div
+                    className='modal show d-block'
+                    role='dialog'
+                    aria-modal='true'
+                    aria-labelledby='lotes-producto-title'
+                    tabIndex='-1'
+                    style={{ backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
+                >
+                    <div className='modal-dialog modal-lg modal-dialog-centered'>
+                        <div className='modal-content' style={{ borderRadius: '12px' }}>
+                            <div className='modal-header' style={{ backgroundColor: PRIMARY_COLOR, color: TEXT_COLOR }}>
+                                <h5 className='modal-title' id='lotes-producto-title' style={{ fontWeight: '700' }}>
+                                    Lotes de {productoSeleccionado.name}
+                                </h5>
+                                <button
+                                    type='button'
+                                    className='btn btn-outline-dark btn-sm d-inline-flex align-items-center'
+                                    aria-label='Cerrar'
+                                    onClick={() => setProductoSeleccionado(null)}
+                                >
+                                    <FaTimes />
+                                </button>
+                            </div>
+                            <div className='modal-body'>
+                                {lotesSeleccionados.length > 0 ? (
+                                    <div className='table-responsive'>
+                                        <table className='table table-bordered table-striped mb-0'>
+                                            <thead style={{ backgroundColor: '#F0F0F0', color: TEXT_COLOR }}>
+                                                <tr>
+                                                    <th>Precio</th>
+                                                    <th className='text-end'>Cantidad</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {lotesSeleccionados.map((lot, index) => (
+                                                    <tr key={lot.id || `${productoSeleccionado.id}-lot-${index}`}>
+                                                        <td>{formatCurrency(lot.unitPrice)}</td>
+                                                        <td className='text-end'>{parseInt(lot.stock, 10) || 0}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <div className='alert alert-info mb-0' role='alert'>
+                                        Este producto no tiene lotes para mostrar.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

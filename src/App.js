@@ -28,75 +28,36 @@ function App() {
       <BrowserRouter>
         <HeaderComponente />
         <Routes>
-          <Route
-            path="/"
-            element={<LandingPage />}
-          />
+          <Route path="/" element={<LandingPage />}/>
           <Route path='/login' element={<LoginFormComponent />}></Route>
-          <Route path='/libro-mayor' element={<LibroMayorComponent />}></Route> {/* Hacer PrivateRoute */}
-            {/*<Route path='/inicio' element={<InicioComponent />}></Route>*/}
-          {/* <Route path='/usuarios' element={<ListarUsuariosComponente />}></Route> */}
-          {/* <Route path='/add-username' element={<AddUsuarioComponent />}></Route> */}
-          <Route
-            path="/inicio"
-            element={<PrivateRoute requiredRole="USER"><InicioComponent /></PrivateRoute>}
-          />
-          <Route
-            path="/plan-de-cuentas"
-            element={<PrivateRoute requiredRole="USER"><PlanDeCuentasComponent /></PrivateRoute>}
-          />
-          <Route
-            path="/add-account"
-            element={<PrivateRoute requiredRole="ADMIN"><AddCuentaComponent /></PrivateRoute>}
-          />
-          <Route
-            path="/asientos"
-            element={<PrivateRoute requiredRole="USER"><AddAsientoComponent /></PrivateRoute>}
-          />
-          <Route
-            path="/libro-diario"
-            element={<PrivateRoute requiredRole="USER"><LibroDiarioComponent /></PrivateRoute>}
-          />
-          <Route
-            path="/usuarios"
-            element={<PrivateRoute requiredRole="ADMIN"><ListarUsuariosComponente /></PrivateRoute>}
-          />
-          <Route
-            path="/add-username"
-            element={<PrivateRoute requiredRole="ADMIN"><AddUsuarioComponent /></PrivateRoute>}
-          />
-          <Route
-            path="/productos"
-            element={<PrivateRoute requiredRole="USER"><ListarProductosComponent /></PrivateRoute>}
-          />
-          <Route
-            path="/add-producto"
-            element={<PrivateRoute requiredRole="ADMIN"><AddProductoComponent /></PrivateRoute>}
-          />
-          <Route
-            path="/clientes"
-            element={<PrivateRoute requiredRole="USER"><ListarClientesComponent /></PrivateRoute>}
-          />
-          <Route
-            path="/add-cliente"
-            element={<PrivateRoute requiredRole="ADMIN"><AddClienteComponent /></PrivateRoute>}
-          />
-          <Route
-            path="/tipos-pago"
-            element={<PrivateRoute requiredRole="USER"><ListarTiposPagoComponent /></PrivateRoute>}
-          />
-          <Route
-            path="/add-tipo-pago"
-            element={<PrivateRoute requiredRole="ADMIN"><AddTipoPagoComponent /></PrivateRoute>}
-          />
-          <Route
-            path="/add-venta"
-            element={<PrivateRoute requiredRole="USER"><AddVentaComponent /></PrivateRoute>}
-          />
-          <Route
-            path="/empresa"
-            element={<PrivateRoute requiredRole="ADMIN"><EmpresaComponent /></PrivateRoute>}
-          />
+
+          <Route element={<PrivateRoute requiredRole={['SELLER', 'COUNTABLE']} />}>
+            <Route path="/inicio" element={<InicioComponent />} />
+          </Route>
+
+          <Route element={<PrivateRoute requiredRole={'COUNTABLE'} />}>
+            <Route path="/plan-de-cuentas" element={<PlanDeCuentasComponent />} />
+            <Route path="/asientos" element={<AddAsientoComponent />} />
+            <Route path="/libro-diario" element={<LibroDiarioComponent />} />
+            <Route path='/libro-mayor' element={<LibroMayorComponent />}></Route>
+          </Route>
+
+          <Route element={<PrivateRoute requiredRole={'SELLER'} />}>
+            <Route path="/productos" element={<ListarProductosComponent />} />
+            <Route path="/clientes" element={<ListarClientesComponent />} />
+            <Route path="/tipos-pago" element={<ListarTiposPagoComponent />} />
+            <Route path="/add-venta" element={<AddVentaComponent />} />
+          </Route>
+          
+          <Route element={<PrivateRoute requiredRole="ADMIN" />}>
+            <Route path="/add-account" element={<AddCuentaComponent />} />
+            <Route path="/usuarios" element={<ListarUsuariosComponente />} />
+            <Route path="/add-username" element={<AddUsuarioComponent />} />
+            <Route path="/add-producto" element={<AddProductoComponent />} />
+            <Route path="/add-cliente" element={<AddClienteComponent />} />
+            <Route path="/add-tipo-pago" element={<AddTipoPagoComponent />} />
+            <Route path="/empresa" element={<EmpresaComponent />} />
+          </Route>
         </Routes>
       
       </BrowserRouter>

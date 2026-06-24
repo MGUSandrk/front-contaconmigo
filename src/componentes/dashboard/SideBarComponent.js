@@ -11,15 +11,20 @@ import { getRoleFromToken } from '../../utiles/authUtils';
 
 // --- ICONOS Y ETIQUETAS ---
 const MENU_ITEMS = [
-    { to: "/inicio", icon: IoHomeOutline, label: "Inicio" },
-    { to: "/plan-de-cuentas", icon: MdOutlineAccountTree, label: "Plan de Cuentas" },
-    { to: "/asientos", icon: LuBookOpenCheck, label: "Reg. Asientos" },
-    { to: "/libro-diario", icon: LuNotebookTabs, label: "Libro Diario" },
-    { to: "/libro-mayor", icon: TbMapDollar, label: "Libro Mayor" },
-    { to: "/productos", icon: BsBoxSeam, label: "Productos" },
-    { to: "/clientes", icon: TbUserDollar, label: "Clientes" },
-    { to: "/add-venta", icon: TbShoppingCartPlus, label: "Agregar Venta" },
-    { to: "/tipos-pago", icon: TbCreditCard, label: "Tipos de Pago" },
+    { to: "/inicio", icon: IoHomeOutline, label: "Inicio", roles: ['SELLER', 'COUNTABLE', 'ADMIN'] },
+    { to: "/plan-de-cuentas", icon: MdOutlineAccountTree, label: "Plan de Cuentas", roles: ['COUNTABLE', 'ADMIN'] },
+    { to: "/asientos", icon: LuBookOpenCheck, label: "Reg. Asientos", roles: ['COUNTABLE', 'ADMIN'] },
+    { to: "/libro-diario", icon: LuNotebookTabs, label: "Libro Diario", roles: ['COUNTABLE', 'ADMIN'] },
+    { to: "/libro-mayor", icon: TbMapDollar, label: "Libro Mayor", roles: ['COUNTABLE', 'ADMIN'] },
+    { to: "/productos", icon: BsBoxSeam, label: "Productos", roles: ['SELLER', 'ADMIN'] },
+    { to: "/clientes", icon: TbUserDollar, label: "Clientes", roles: ['SELLER', 'ADMIN'] },
+    { to: "/add-venta", icon: TbShoppingCartPlus, label: "Agregar Venta", roles: ['SELLER', 'ADMIN'] },
+    { to: "/tipos-pago", icon: TbCreditCard, label: "Tipos de Pago", roles: ['SELLER', 'ADMIN'] },
+    { to: "/usuarios", icon: TbUsers, label: "Gestión Usuarios", roles: ['ADMIN'] },
+];
+
+const ADMIN_BOTTOM_ITEMS = [
+    { to: '/empresa', icon: LuBuilding, label: 'Empresa', roles: ['ADMIN'] },
 ];
 
 const BASE_WIDTH = '3.9rem';    
@@ -35,6 +40,9 @@ const SideBarComponent = () => {
     const [isExpanded, setIsExpanded] = useState(false);
     const userRole = getRoleFromToken();
     const location = useLocation();
+    const canSeeItem = (item) => item.roles.includes(userRole);
+    const visibleMenuItems = MENU_ITEMS.filter(canSeeItem);
+    const visibleBottomItems = ADMIN_BOTTOM_ITEMS.filter(canSeeItem);
 
     // Función que renderiza un solo item de la barra lateral
     const renderLink = (item) => {
@@ -133,21 +141,16 @@ const SideBarComponent = () => {
                 className="nav nav-pills flex-column mb-auto" 
                 style={{ paddingTop: '15px' }} 
             >
-                {MENU_ITEMS.map(renderLink)}
-                
-                {/* Enlace de Administrador Condicional */}
-                {userRole === 'ADMIN' && (
-                    renderLink({ to: '/usuarios', icon: TbUsers, label: 'Gestión Usuarios' })
-                )}
+                {visibleMenuItems.map(renderLink)}
             </ul>
 
-            {userRole === 'ADMIN' && (
+            {visibleBottomItems.length > 0 && (
                 <ul
                     className="nav nav-pills flex-column"
                     data-testid="sidebar-bottom-section"
                     style={{ marginTop: 'auto', paddingBottom: '15px' }}
                 >
-                    {renderLink({ to: '/empresa', icon: LuBuilding, label: 'Empresa' })}
+                    {visibleBottomItems.map(renderLink)}
                 </ul>
             )}
         </div>

@@ -17,8 +17,8 @@ test('crea un producto con sus lotes', async () => {
     ProductoServicio.crearProducto.mockResolvedValue({ data: { id: 1 } });
     PaymentTypeServicio.listarTiposPago.mockResolvedValue({
         data: [
-            { id: 1, type: 'Efectivo' },
-            { id: 2, type: 'Transferencia' },
+            { id: 1, type: 'Efectivo', balance: 5000 },
+            { id: 2, type: 'Transferencia', balance: 2500 },
         ],
     });
 
@@ -36,6 +36,7 @@ test('crea un producto con sus lotes', async () => {
     await userEvent.type(screen.getByLabelText('Stock:'), '5');
     expect(await screen.findByRole('option', { name: 'Efectivo' })).toBeInTheDocument();
     await userEvent.selectOptions(screen.getByLabelText('Metodo de Pago:'), '1');
+    expect(screen.getByText('Monto disponible: $ 5.000,00')).toBeInTheDocument();
     await userEvent.type(screen.getByLabelText('Monto del Pago:'), '4000');
     await userEvent.click(screen.getByRole('button', { name: /agregar pago/i }));
 

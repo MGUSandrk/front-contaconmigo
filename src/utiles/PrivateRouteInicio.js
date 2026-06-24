@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import {getRoleFromToken} from "../utiles/authUtils";
 
 //Recibe un componente como parámetro
@@ -13,16 +13,17 @@ const PrivateRoute = ({ children, requiredRole}) => {
   }
 
   const userRole = getRoleFromToken();
+  const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
 
     if (userRole === "ADMIN") {
-      return children;
+      return children || <Outlet />;
     }
 
-  if (requiredRole && userRole !== requiredRole) {
-    return <Navigate to="/login" />; 
+  if (requiredRole && !allowedRoles.includes(userRole)) {
+    return <Navigate to="/inicio" />; 
   }
   // Si el token existe, renderizar la ruta hija
-  return children;
+  return children || <Outlet />;
 };
 
 export default PrivateRoute;

@@ -62,6 +62,7 @@ const AddProductoComponent = () => {
         return total + (parseFloat(payment.amount) || 0);
     }, 0));
 
+    const selectedPaymentType = paymentTypes.find(paymentType => String(paymentType.id) === String(selectedPaymentTypeId));
     const pendingTotal = roundToCents(purchaseTotal - paymentsTotal);
     const canSaveProduct = payments.length > 0 && purchaseTotal > 0 && pendingTotal === 0;
 
@@ -125,8 +126,6 @@ const AddProductoComponent = () => {
             setError('La suma de pagos no puede superar el total de la compra.');
             return;
         }
-
-        const selectedPaymentType = paymentTypes.find(paymentType => String(paymentType.id) === String(selectedPaymentTypeId));
 
         setPayments([
             ...payments,
@@ -378,7 +377,7 @@ const AddProductoComponent = () => {
                                         <FaCreditCard className='me-2' /> Pagos de la Compra
                                     </h4>
 
-                                    <div className='row g-3 align-items-end mb-3'>
+                                    <div className='row g-3 mb-3'>
                                         <div className='form-group col-md-5'>
                                             <label htmlFor='paymentTypeId' className='form-label' style={{ fontWeight: '600', color: TEXT_COLOR }}>
                                                 Metodo de Pago:
@@ -423,9 +422,17 @@ const AddProductoComponent = () => {
                                                 disabled={isSaving || loadingPaymentTypes}
                                                 style={{ borderColor: PRIMARY_COLOR }}
                                             />
+                                            {selectedPaymentType && (
+                                                <div className='form-text' style={{ color: TEXT_COLOR }}>
+                                                    Monto disponible: {formatCurrency(parseFloat(selectedPaymentType.balance) || 0)}
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div className='col-md-3'>
+                                            <div className='form-label d-none d-md-block' style={{ fontWeight: '600', visibility: 'hidden' }}>
+                                                Agregar Pago:
+                                            </div>
                                             <button
                                                 type='button'
                                                 className='btn btn-outline-secondary w-100'
