@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FaSave, FaTimesCircle, FaUserPlus } from 'react-icons/fa';
 import SideBarComponent from '../dashboard/SideBarComponent';
 import ClienteServicio from '../../servicios/ClienteServicio';
+import { DOCUMENT_TYPES, VAT_CONDITIONS, isFiscalDataRequired } from '../../utiles/fiscalOptions';
 
 const PRIMARY_COLOR = '#A8DADC';
 const TEXT_COLOR = '#2C3E50';
@@ -13,10 +14,20 @@ const AddClienteComponent = () => {
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [cuit, setCuit] = useState('');
+    const [vatCondition, setVatCondition] = useState('');
+    const [documentType, setDocumentType] = useState('');
+    const [documentNumber, setDocumentNumber] = useState('');
+    const [commercialAddress, setCommercialAddress] = useState('');
     const [error, setError] = useState('');
     const [isSaving, setIsSaving] = useState(false);
 
     const navigate = useNavigate();
+    const fiscalDataRequired = isFiscalDataRequired(vatCondition);
+
+    const optionalText = (value) => {
+        const normalizedValue = value.trim();
+        return normalizedValue ? normalizedValue : null;
+    };
 
     const guardarCliente = async (e) => {
         e.preventDefault();
@@ -32,15 +43,36 @@ const AddClienteComponent = () => {
             return;
         }
 
-        if (!cuit.trim()) {
-            setError('El CUIT es obligatorio.');
+        if (!vatCondition) {
+            setError('Debe seleccionar la condicion frente al IVA.');
             return;
+        }
+
+        if (fiscalDataRequired) {
+            if (!documentType) {
+                setError('Debe seleccionar el tipo de documento.');
+                return;
+            }
+
+            if (!documentNumber.trim()) {
+                setError('El numero de documento es obligatorio.');
+                return;
+            }
+
+            if (!commercialAddress.trim()) {
+                setError('El domicilio comercial es obligatorio.');
+                return;
+            }
         }
 
         const client = {
             fullName: fullName.trim(),
             email: email.trim(),
             cuit: cuit.trim(),
+            vatCondition,
+            documentType: documentType || null,
+            documentNumber: optionalText(documentNumber),
+            commercialAddress: optionalText(commercialAddress),
         };
 
         setIsSaving(true);
@@ -133,7 +165,96 @@ const AddClienteComponent = () => {
                                             setError('');
                                         }}
                                         disabled={isSaving}
+                                        style={{ borderColor: PRIMARY_COLOR }}
+                                    />
+                                </div>
+
+                                <div className='form-group mb-4'>
+                                    <label htmlFor='vatCondition' className='form-label' style={{ fontWeight: '600', color: TEXT_COLOR }}>
+                                        Condicion frente al IVA:
+                                    </label>
+                                    <select
+                                        id='vatCondition'
+                                        className='form-select form-select-lg'
+                                        value={vatCondition}
+                                        onChange={(e) => {
+                                            setVatCondition(e.target.value);
+                                            setError('');
+                                        }}
+                                        disabled={isSaving}
                                         required
+                                        style={{ borderColor: PRIMARY_COLOR }}
+                                    >
+                                        <option value=''>-- Seleccione una condicion --</option>
+                                        {VAT_CONDITIONS.map((condition) => (
+                                            <option key={condition.value} value={condition.value}>
+                                                {condition.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className='form-group mb-4'>
+                                    <label htmlFor='documentType' className='form-label' style={{ fontWeight: '600', color: TEXT_COLOR }}>
+                                        Tipo de Documento:
+                                    </label>
+                                    <select
+                                        id='documentType'
+                                        className='form-select form-select-lg'
+                                        value={documentType}
+                                        onChange={(e) => {
+                                            setDocumentType(e.target.value);
+                                            setError('');
+                                        }}
+                                        disabled={isSaving}
+                                        required={fiscalDataRequired}
+                                        style={{ borderColor: PRIMARY_COLOR }}
+                                    >
+                                        <option value=''>-- Seleccione un tipo --</option>
+                                        {DOCUMENT_TYPES.map((type) => (
+                                            <option key={type.value} value={type.value}>
+                                                {type.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className='form-group mb-4'>
+                                    <label htmlFor='documentNumber' className='form-label' style={{ fontWeight: '600', color: TEXT_COLOR }}>
+                                        Numero de Documento:
+                                    </label>
+                                    <input
+                                        id='documentNumber'
+                                        type='text'
+                                        className='form-control form-control-lg'
+                                        placeholder='30123456789'
+                                        value={documentNumber}
+                                        onChange={(e) => {
+                                            setDocumentNumber(e.target.value);
+                                            setError('');
+                                        }}
+                                        disabled={isSaving}
+                                        required={fiscalDataRequired}
+                                        style={{ borderColor: PRIMARY_COLOR }}
+                                    />
+                                </div>
+
+                                <div className='form-group mb-4'>
+                                    <label htmlFor='commercialAddress' className='form-label' style={{ fontWeight: '600', color: TEXT_COLOR }}>
+                                        Domicilio Comercial:
+                                    </label>
+                                    <input
+                                        id='commercialAddress'
+                                        type='text'
+                                        className='form-control form-control-lg'
+                                        placeholder='Calle 123'
+                                        value={commercialAddress}
+                                        onChange={(e) => {
+                                            setCommercialAddress(e.target.value);
+                                            setError('');
+                                        }}
+                                        disabled={isSaving}
+                                        required={fiscalDataRequired}
                                         style={{ borderColor: PRIMARY_COLOR }}
                                     />
                                 </div>

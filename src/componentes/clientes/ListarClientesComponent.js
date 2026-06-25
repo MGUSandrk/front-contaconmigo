@@ -4,6 +4,7 @@ import { FaPlusCircle, FaSpinner, FaUserTie } from 'react-icons/fa';
 import SideBarComponent from '../dashboard/SideBarComponent';
 import ClienteServicio from '../../servicios/ClienteServicio';
 import { getRoleFromToken } from '../../utiles/authUtils';
+import { getDocumentTypeLabel, getVatConditionLabel } from '../../utiles/fiscalOptions';
 
 const PRIMARY_COLOR = '#A8DADC';
 const TEXT_COLOR = '#2C3E50';
@@ -17,6 +18,16 @@ const ListarClientesComponent = () => {
 
     const userRole = getRoleFromToken();
     const isAdmin = userRole === 'ADMIN';
+
+    const formatEmpty = (value) => value || '-';
+
+    const formatDocument = (client) => {
+        if (!client.documentType || !client.documentNumber) {
+            return '-';
+        }
+
+        return `${getDocumentTypeLabel(client.documentType)} ${client.documentNumber}`;
+    };
 
     useEffect(() => {
         setCargando(true);
@@ -78,17 +89,23 @@ const ListarClientesComponent = () => {
                                     <table className='table table-bordered table-striped table-hover' style={{ fontSize: '0.95rem' }}>
                                         <thead style={{ backgroundColor: PRIMARY_COLOR, color: TEXT_COLOR }}>
                                             <tr>
-                                                <th style={{ width: '40%' }}>Nombre Completo</th>
-                                                <th style={{ width: '35%' }}>Email</th>
-                                                <th style={{ width: '25%' }}>CUIT</th>
+                                                <th>Nombre Completo</th>
+                                                <th>Email</th>
+                                                <th>Condicion IVA</th>
+                                                <th>Documento</th>
+                                                <th>CUIT</th>
+                                                <th>Domicilio Comercial</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {clientes.map(client => (
                                                 <tr key={client.id || client.cuit || client.email}>
-                                                    <td>{client.fullName}</td>
-                                                    <td>{client.email}</td>
-                                                    <td>{client.cuit}</td>
+                                                    <td>{formatEmpty(client.fullName)}</td>
+                                                    <td>{formatEmpty(client.email)}</td>
+                                                    <td>{getVatConditionLabel(client.vatCondition)}</td>
+                                                    <td>{formatDocument(client)}</td>
+                                                    <td>{formatEmpty(client.cuit)}</td>
+                                                    <td>{formatEmpty(client.commercialAddress)}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
