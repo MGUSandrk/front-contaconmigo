@@ -17,7 +17,7 @@ const ListarClientesComponent = () => {
     const [error, setError] = useState('');
 
     const userRole = getRoleFromToken();
-    const isAdmin = userRole === 'ADMIN';
+    const canCreateClient = userRole === 'ADMIN' || userRole === 'SELLER';
 
     const formatEmpty = (value) => value || '-';
 
@@ -65,7 +65,7 @@ const ListarClientesComponent = () => {
                                 <FaUserTie size={28} className='me-3' />
                                 Clientes
                             </h2>
-                            {isAdmin && (
+                            {canCreateClient && (
                                 <Link to='/add-cliente' className='btn btn-success d-flex align-items-center' style={{ fontWeight: '600' }}>
                                     <FaPlusCircle className='me-2' /> Agregar Cliente
                                 </Link>

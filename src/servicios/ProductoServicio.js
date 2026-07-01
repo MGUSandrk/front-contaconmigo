@@ -25,6 +25,10 @@ class ProductoServicio {
         return axios.post(PRODUCTO_BASE_REST_API_URL + '/create', product, this.getAuthHeaders());
     }
 
+    crearLotProducto(productId, lot) {
+        return axios.post(PRODUCTO_BASE_REST_API_URL + '/' + productId + '/lot', lot, this.getAuthHeaders());
+    }
+
     deleteProducto(productId) {
         return axios.delete(PRODUCTO_BASE_REST_API_URL + '/' + productId, this.getAuthHeaders());
     }

@@ -19,6 +19,7 @@ import AddClienteComponent from './componentes/clientes/AddClienteComponent';
 import ListarTiposPagoComponent from './componentes/pagos/ListarTiposPagoComponent';
 import AddTipoPagoComponent from './componentes/pagos/AddTipoPagoComponent';
 import AddVentaComponent from './componentes/ventas/AddVentaComponent';
+import ListarVentasComponent from './componentes/ventas/ListarVentasComponent';
 import EmpresaComponent from './componentes/empresa/EmpresaComponent';
 
 
@@ -47,6 +48,7 @@ function App() {
             <Route path="/clientes" element={<ListarClientesComponent />} />
             <Route path="/tipos-pago" element={<ListarTiposPagoComponent />} />
             <Route path="/add-venta" element={<AddVentaComponent />} />
+            <Route path="/add-cliente" element={<AddClienteComponent />} />
           </Route>
           
           <Route element={<PrivateRoute requiredRole="ADMIN" />}>
@@ -54,8 +56,8 @@ function App() {
             <Route path="/usuarios" element={<ListarUsuariosComponente />} />
             <Route path="/add-username" element={<AddUsuarioComponent />} />
             <Route path="/add-producto" element={<AddProductoComponent />} />
-            <Route path="/add-cliente" element={<AddClienteComponent />} />
             <Route path="/add-tipo-pago" element={<AddTipoPagoComponent />} />
+            <Route path="/ventas" element={<ListarVentasComponent />} />
             <Route path="/empresa" element={<EmpresaComponent />} />
           </Route>
         </Routes>

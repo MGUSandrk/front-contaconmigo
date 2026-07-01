@@ -13,7 +13,7 @@ jest.mock('../../servicios/PaymentTypeServicio', () => ({
     listarTiposPago: jest.fn(),
 }));
 
-test('crea un producto con sus lotes', async () => {
+test('crea un producto con un solo lot', async () => {
     ProductoServicio.crearProducto.mockResolvedValue({ data: { id: 1 } });
     PaymentTypeServicio.listarTiposPago.mockResolvedValue({
         data: [
@@ -46,12 +46,10 @@ test('crea un producto con sus lotes', async () => {
         expect(ProductoServicio.crearProducto).toHaveBeenCalledWith({
             name: 'Yerba',
             salePrice: 1200,
-            lots: [
-                {
-                    unitPrice: 800,
-                    stock: 5,
-                },
-            ],
+            lot: {
+                unitPrice: 800,
+                stock: 5,
+            },
             payments: [
                 {
                     id: '1',
@@ -83,6 +81,7 @@ test('no permite guardar hasta que el pendiente sea cero', async () => {
     await userEvent.type(screen.getByLabelText('Precio de Venta:'), '1200');
     await userEvent.type(screen.getByLabelText('Precio Unitario:'), '800');
     await userEvent.type(screen.getByLabelText('Stock:'), '5');
+    expect(screen.queryByRole('button', { name: /agregar lote/i })).not.toBeInTheDocument();
 
     const saveButton = screen.getByRole('button', { name: /guardar producto/i });
     expect(saveButton).toBeDisabled();

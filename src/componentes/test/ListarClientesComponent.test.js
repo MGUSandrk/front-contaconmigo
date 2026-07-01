@@ -7,9 +7,14 @@ jest.mock('../../servicios/ClienteServicio', () => ({
     listarClientes: jest.fn(),
 }));
 
+let mockRole = 'ADMIN';
 jest.mock('../../utiles/authUtils', () => ({
-    getRoleFromToken: () => 'ADMIN',
+    getRoleFromToken: () => mockRole,
 }));
+
+beforeEach(() => {
+    mockRole = 'ADMIN';
+});
 
 test('muestra la lista de clientes con sus datos fiscales principales', async () => {
     ClienteServicio.listarClientes.mockResolvedValue({
@@ -51,4 +56,17 @@ test('muestra la lista de clientes con sus datos fiscales principales', async ()
     expect(screen.getByText('Calle 123')).toBeInTheDocument();
     expect(screen.getByText('Consumidor Final')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /agregar cliente/i })).toHaveAttribute('href', '/add-cliente');
+});
+
+test('permite al vendedor acceder al alta de cliente desde la lista', async () => {
+    mockRole = 'SELLER';
+    ClienteServicio.listarClientes.mockResolvedValue({ data: [] });
+
+    render(
+        <MemoryRouter>
+            <ListarClientesComponent />
+        </MemoryRouter>
+    );
+
+    expect(await screen.findByRole('link', { name: /agregar cliente/i })).toHaveAttribute('href', '/add-cliente');
 });

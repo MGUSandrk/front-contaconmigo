@@ -3,7 +3,7 @@ import { useLocation, Link } from 'react-router-dom';
 import { IoHomeOutline } from "react-icons/io5";
 import {LuBuilding} from 'react-icons/lu';
 import { BsBoxSeam } from 'react-icons/bs';
-import { TbUserDollar, TbUsers, TbCreditCard, TbShoppingCartPlus } from "react-icons/tb";
+import { TbUserDollar, TbUsers, TbCreditCard, TbShoppingCartPlus, TbReceipt } from "react-icons/tb";
 import { LuBookOpenCheck, LuNotebookTabs } from 'react-icons/lu';
 import { MdOutlineAccountTree } from "react-icons/md";
 import { TbMapDollar } from 'react-icons/tb';
@@ -19,6 +19,7 @@ const MENU_ITEMS = [
     { to: "/productos", icon: BsBoxSeam, label: "Productos", roles: ['SELLER', 'ADMIN'] },
     { to: "/clientes", icon: TbUserDollar, label: "Clientes", roles: ['SELLER', 'ADMIN'] },
     { to: "/add-venta", icon: TbShoppingCartPlus, label: "Agregar Venta", roles: ['SELLER', 'ADMIN'] },
+    { to: "/ventas", icon: TbReceipt, label: "Historial de Ventas", roles: ['ADMIN'] },
     { to: "/tipos-pago", icon: TbCreditCard, label: "Tipos de Pago", roles: ['SELLER', 'ADMIN'] },
     { to: "/usuarios", icon: TbUsers, label: "Gestión Usuarios", roles: ['ADMIN'] },
 ];

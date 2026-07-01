@@ -25,7 +25,7 @@ const formatCurrency = (value) => {
 const AddProductoComponent = () => {
     const [name, setName] = useState('');
     const [salePrice, setSalePrice] = useState('');
-    const [lots, setLots] = useState([{ unitPrice: '', stock: '' }]);
+    const [lot, setLot] = useState({ unitPrice: '', stock: '' });
     const [paymentTypes, setPaymentTypes] = useState([]);
     const [loadingPaymentTypes, setLoadingPaymentTypes] = useState(true);
     const [selectedPaymentTypeId, setSelectedPaymentTypeId] = useState('');
@@ -52,11 +52,7 @@ const AddProductoComponent = () => {
             });
     }, []);
 
-    const purchaseTotal = roundToCents(lots.reduce((total, lot) => {
-        const unitPrice = parseFloat(lot.unitPrice) || 0;
-        const stock = parseInt(lot.stock, 10) || 0;
-        return total + (unitPrice * stock);
-    }, 0));
+    const purchaseTotal = roundToCents((parseFloat(lot.unitPrice) || 0) * (parseInt(lot.stock, 10) || 0));
 
     const paymentsTotal = roundToCents(payments.reduce((total, payment) => {
         return total + (parseFloat(payment.amount) || 0);
@@ -66,36 +62,13 @@ const AddProductoComponent = () => {
     const pendingTotal = roundToCents(purchaseTotal - paymentsTotal);
     const canSaveProduct = payments.length > 0 && purchaseTotal > 0 && pendingTotal === 0;
 
-    const handleLotChange = (index, event) => {
+    const handleLotChange = (event) => {
         const { name: fieldName, value } = event.target;
         const cleanValue = normalizeNumberInput(value);
-        const updatedLots = [...lots];
-        updatedLots[index] = {
-            ...updatedLots[index],
+        setLot({
+            ...lot,
             [fieldName]: cleanValue
-        };
-        setLots(updatedLots);
-        setError('');
-    };
-
-    const handleAddLot = () => {
-        const lastLot = lots[lots.length - 1];
-        if (!lastLot.unitPrice || !lastLot.stock) {
-            setError('Complete el lote anterior antes de agregar uno nuevo.');
-            return;
-        }
-        setLots([...lots, { unitPrice: '', stock: '' }]);
-        setError('');
-    };
-
-    const handleRemoveLot = (index) => {
-        if (lots.length === 1) {
-            setError('El producto debe tener al menos un lote.');
-            return;
-        }
-        const updatedLots = [...lots];
-        updatedLots.splice(index, 1);
-        setLots(updatedLots);
+        });
         setError('');
     };
 
@@ -155,18 +128,12 @@ const AddProductoComponent = () => {
             return 'El precio de venta debe ser un numero mayor o igual a 0.';
         }
 
-        if (lots.length === 0) {
-            return 'El producto debe tener al menos un lote.';
-        }
-
-        const invalidLot = lots.some(lot => {
-            const unitPrice = parseFloat(lot.unitPrice);
-            const stock = parseInt(lot.stock, 10);
-            return lot.unitPrice === '' || lot.stock === '' || isNaN(unitPrice) || unitPrice < 0 || isNaN(stock) || stock <= 0;
-        });
+        const unitPrice = parseFloat(lot.unitPrice);
+        const stock = parseInt(lot.stock, 10);
+        const invalidLot = lot.unitPrice === '' || lot.stock === '' || isNaN(unitPrice) || unitPrice < 0 || isNaN(stock) || stock <= 0;
 
         if (invalidLot) {
-            return 'Cada lote debe tener precio unitario mayor o igual a 0 y stock mayor a 0.';
+            return 'El lot debe tener precio unitario mayor o igual a 0 y stock mayor a 0.';
         }
 
         if (payments.length === 0) {
@@ -202,10 +169,10 @@ const AddProductoComponent = () => {
         const product = {
             name: name.trim(),
             salePrice: parseFloat(salePrice),
-            lots: lots.map(lot => ({
+            lot: {
                 unitPrice: parseFloat(lot.unitPrice),
                 stock: parseInt(lot.stock, 10),
-            })),
+            },
             payments: payments.map(payment => ({
                 id: String(payment.id),
                 amount: String(payment.amount),
@@ -293,83 +260,56 @@ const AddProductoComponent = () => {
                                     </div>
                                 </div>
 
-                                <h4 className='mb-4' style={{ color: TEXT_COLOR }}>Lotes</h4>
+                                <h4 className='mb-4' style={{ color: TEXT_COLOR }}>Lote Inicial</h4>
 
-                                <div className='table-responsive' style={{ border: '1px solid #E0E0E0', borderRadius: '8px' }}>
+                                <div className='table-responsive mb-4' style={{ border: '1px solid #E0E0E0', borderRadius: '8px' }}>
                                     <table className='table table-hover mb-0'>
                                         <thead style={{ backgroundColor: '#F0F0F0' }}>
                                             <tr>
-                                                <th style={{ width: '45%', color: TEXT_COLOR }}>Precio Unitario</th>
-                                                <th style={{ width: '45%', color: TEXT_COLOR }}>Stock</th>
-                                                <th style={{ width: '10%' }}></th>
+                                                <th style={{ width: '50%', color: TEXT_COLOR }}>Precio Unitario</th>
+                                                <th style={{ width: '50%', color: TEXT_COLOR }}>Stock</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {lots.map((lot, index) => (
-                                                <tr key={index}>
-                                                    <td>
-                                                        <label className='visually-hidden' htmlFor={`unitPrice-${index}`}>
-                                                            Precio Unitario:
-                                                        </label>
-                                                        <input
-                                                            id={`unitPrice-${index}`}
-                                                            type='number'
-                                                            name='unitPrice'
-                                                            className='form-control'
-                                                            placeholder='0.00'
-                                                            value={lot.unitPrice}
-                                                            onChange={(e) => handleLotChange(index, e)}
-                                                            step='0.01'
-                                                            min='0'
-                                                            disabled={isSaving}
-                                                            required
-                                                        />
-                                                    </td>
-                                                    <td>
-                                                        <label className='visually-hidden' htmlFor={`stock-${index}`}>
-                                                            Stock:
-                                                        </label>
-                                                        <input
-                                                            id={`stock-${index}`}
-                                                            type='number'
-                                                            name='stock'
-                                                            className='form-control'
-                                                            placeholder='0'
-                                                            value={lot.stock}
-                                                            onChange={(e) => handleLotChange(index, e)}
-                                                            min='1'
-                                                            disabled={isSaving}
-                                                            required
-                                                        />
-                                                    </td>
-                                                    <td className='text-center'>
-                                                        {lots.length > 1 && (
-                                                            <button
-                                                                type='button'
-                                                                className='btn btn-sm btn-outline-danger'
-                                                                onClick={() => handleRemoveLot(index)}
-                                                                disabled={isSaving}
-                                                                title='Eliminar lote'
-                                                            >
-                                                                <FaTrash />
-                                                            </button>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                            <tr>
+                                                <td>
+                                                    <label className='visually-hidden' htmlFor='unitPrice'>
+                                                        Precio Unitario:
+                                                    </label>
+                                                    <input
+                                                        id='unitPrice'
+                                                        type='number'
+                                                        name='unitPrice'
+                                                        className='form-control'
+                                                        placeholder='0.00'
+                                                        value={lot.unitPrice}
+                                                        onChange={handleLotChange}
+                                                        step='0.01'
+                                                        min='0'
+                                                        disabled={isSaving}
+                                                        required
+                                                    />
+                                                </td>
+                                                <td>
+                                                    <label className='visually-hidden' htmlFor='stock'>
+                                                        Stock:
+                                                    </label>
+                                                    <input
+                                                        id='stock'
+                                                        type='number'
+                                                        name='stock'
+                                                        className='form-control'
+                                                        placeholder='0'
+                                                        value={lot.stock}
+                                                        onChange={handleLotChange}
+                                                        min='1'
+                                                        disabled={isSaving}
+                                                        required
+                                                    />
+                                                </td>
+                                            </tr>
                                         </tbody>
                                     </table>
-                                </div>
-
-                                <div className='d-flex justify-content-between align-items-center mt-3 mb-4'>
-                                    <button
-                                        type='button'
-                                        className='btn btn-outline-secondary'
-                                        onClick={handleAddLot}
-                                        disabled={isSaving}
-                                    >
-                                        <FaPlus className='me-2' /> Agregar Lote
-                                    </button>
                                 </div>
 
                                 <div className='border-top pt-4 mb-4'>

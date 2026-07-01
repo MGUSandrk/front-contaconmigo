@@ -21,6 +21,10 @@ class VentaServicio {
         return axios.post(VENTA_BASE_REST_API_URL + '/create', sale, this.getAuthHeaders());
     }
 
+    listarVentas() {
+        return axios.get(VENTA_BASE_REST_API_URL, this.getAuthHeaders());
+    }
+
 }
 
 const ventaServicio = new VentaServicio();

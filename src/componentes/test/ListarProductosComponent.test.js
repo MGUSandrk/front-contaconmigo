@@ -1,11 +1,17 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import ListarProductosComponent from '../productos/ListarProductosComponent';
 import ProductoServicio from '../../servicios/ProductoServicio';
+import PaymentTypeServicio from '../../servicios/PaymentTypeServicio';
 
 jest.mock('../../servicios/ProductoServicio', () => ({
     listarProductos: jest.fn(),
+    crearLotProducto: jest.fn(),
+}));
+
+jest.mock('../../servicios/PaymentTypeServicio', () => ({
+    listarTiposPago: jest.fn(),
 }));
 
 jest.mock('../../utiles/authUtils', () => ({
@@ -65,4 +71,70 @@ test('muestra productos con cantidad total del backend y permite ver los lotes',
         expect(screen.queryByText('Yerba')).not.toBeInTheDocument();
     });
     expect(screen.getByText('Azucar')).toBeInTheDocument();
+});
+
+test('permite agregar un lot con pagos desde la lista de productos', async () => {
+    ProductoServicio.listarProductos.mockResolvedValue({
+        data: [
+            {
+                id: 1,
+                name: 'Yerba',
+                salePrice: 1200,
+                totalStock: 20,
+                lots: [
+                    { id: 10, unitPrice: 800, stock: 5 },
+                ],
+            },
+        ],
+    });
+    ProductoServicio.crearLotProducto.mockResolvedValue({ data: { id: 99 } });
+    PaymentTypeServicio.listarTiposPago.mockResolvedValue({
+        data: [
+            { id: 1, type: 'Efectivo', balance: 5000 },
+            { id: 2, type: 'Transferencia', balance: 2500 },
+        ],
+    });
+
+    render(
+        <MemoryRouter>
+            <ListarProductosComponent />
+        </MemoryRouter>
+    );
+
+    expect(await screen.findByText('Yerba')).toBeInTheDocument();
+
+    await act(async () => {
+        await userEvent.click(screen.getByRole('button', { name: /agregar lot a yerba/i }));
+    });
+
+    expect(screen.getByRole('dialog', { name: /agregar lot a yerba/i })).toBeInTheDocument();
+    expect(screen.getByLabelText('Nombre del Producto:')).toHaveValue('Yerba');
+    expect(screen.getByLabelText('Precio de Venta:')).toHaveValue(1200);
+
+    await userEvent.type(screen.getByLabelText('Precio Unitario:'), '800');
+    await userEvent.type(screen.getByLabelText('Stock:'), '5');
+    expect(await screen.findByRole('option', { name: 'Efectivo' })).toBeInTheDocument();
+    await userEvent.selectOptions(screen.getByLabelText('Metodo de Pago:'), '1');
+    await userEvent.type(screen.getByLabelText('Monto del Pago:'), '4000');
+    await userEvent.click(screen.getByRole('button', { name: /agregar pago/i }));
+
+    await userEvent.click(screen.getByRole('button', { name: /guardar lot/i }));
+
+    await waitFor(() => {
+        expect(ProductoServicio.crearLotProducto).toHaveBeenCalledWith(1, {
+            lot: {
+                unitPrice: 800,
+                stock: 5,
+            },
+            payments: [
+                {
+                    id: '1',
+                    amount: '4000',
+                },
+            ],
+        });
+    });
+    await waitFor(() => {
+        expect(ProductoServicio.listarProductos).toHaveBeenCalledTimes(2);
+    });
 });
