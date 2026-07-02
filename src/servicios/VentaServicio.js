@@ -18,7 +18,7 @@ class VentaServicio {
     }
 
     crearVenta(sale) {
-        return axios.post(VENTA_BASE_REST_API_URL + '/create', sale, this.getAuthHeaders());
+        return axios.post(VENTA_BASE_REST_API_URL, sale, this.getAuthHeaders());
     }
 
     listarVentas() {
