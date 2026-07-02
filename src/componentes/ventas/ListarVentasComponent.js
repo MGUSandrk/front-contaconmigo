@@ -126,7 +126,7 @@ const ListarVentasComponent = () => {
                                                     <th>Fecha</th>
                                                     <th>Cliente</th>
                                                     <th>Vendedor</th>
-                                                    <th>Entidad</th>
+                                                    <th>Producto/s</th>
                                                     <th className='text-end'>Total</th>
                                                     <th className='text-center'>Factura</th>
                                                 </tr>
@@ -138,7 +138,7 @@ const ListarVentasComponent = () => {
                                                         <td>{formatDate(venta.dateCreated)}</td>
                                                         <td>{formatEmpty(venta.clientFullName)}</td>
                                                         <td>{formatEmpty(venta.sellerUsername)}</td>
-                                                        <td>{formatEmpty(venta.entityName)}</td>
+                                                        <td>{formatEmpty(venta.products?.map(p => p.productName + ' (' + p.quantity + ')' ).join(', '))}</td>
                                                         <td className='text-end'>{formatCurrency(venta.totalPrice)}</td>
                                                         <td className='text-center'>
                                                             <button
@@ -152,7 +152,6 @@ const ListarVentasComponent = () => {
                                                                 ) : (
                                                                     <FaFileInvoice />
                                                                 )}
-                                                                Factura
                                                             </button>
                                                         </td>
                                                     </tr>
