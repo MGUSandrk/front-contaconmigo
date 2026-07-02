@@ -71,7 +71,7 @@ const AddVentaComponent = () => {
 
         Promise.all([
             ClienteServicio.listarClientes(),
-            ProductoServicio.listarProductos(),
+            ProductoServicio.listarProductosConStock(),
             PaymentTypeServicio.listarTiposPago(),
         ])
             .then(([clientsResponse, productsResponse, paymentTypesResponse]) => {

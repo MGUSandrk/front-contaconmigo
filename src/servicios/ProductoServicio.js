@@ -21,6 +21,10 @@ class ProductoServicio {
         return axios.get(PRODUCTO_BASE_REST_API_URL, this.getAuthHeaders());
     }
 
+    listarProductosConStock() {
+        return axios.get(PRODUCTO_BASE_REST_API_URL + '/with-stock', this.getAuthHeaders());
+    }
+
     crearProducto(product) {
         return axios.post(PRODUCTO_BASE_REST_API_URL + '/create', product, this.getAuthHeaders());
     }

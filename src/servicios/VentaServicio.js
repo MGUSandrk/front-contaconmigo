@@ -25,6 +25,17 @@ class VentaServicio {
         return axios.get(VENTA_BASE_REST_API_URL, this.getAuthHeaders());
     }
 
+    contarVentasDelMes() {
+        return axios.get(VENTA_BASE_REST_API_URL + '/month/count', this.getAuthHeaders());
+    }
+
+    obtenerFactura(idVenta) {
+        return axios.get(`${API_BASE_URL}/sale/invoice/${idVenta}`, {
+            ...this.getAuthHeaders(),
+            responseType: 'blob',
+        });
+    }
+
 }
 
 const ventaServicio = new VentaServicio();

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'; 
 import SideBarComponent from './SideBarComponent';
-import { FaFileInvoiceDollar, FaChartLine, FaDollarSign, FaTools, FaPlusCircle, FaListAlt } from 'react-icons/fa'; 
+import { FaFileInvoiceDollar, FaChartLine, FaDollarSign, FaTools, FaPlusCircle, FaListAlt, FaShoppingCart } from 'react-icons/fa'; 
 import { Link } from 'react-router-dom';
 import PlanDeCuentasServicio from '../../servicios/PlanDeCuentasServicio';
+import VentaServicio from '../../servicios/VentaServicio';
 
 // Función auxiliar para formatear números como moneda ARS
 const formatCurrency = (number) => {
@@ -27,6 +28,7 @@ const InicioComponent = () => {
     const [pasivo, setPasivo] = useState(null);
     const [resultados, setResultados] = useState(null);
     const [capitalDeTrabajo, setCapitalDeTrabajo] = useState(null); 
+    const [ventasDelMes, setVentasDelMes] = useState(null);
     
     
     // --- LÓGICA DE CÁLCULO DE CAPITAL DE TRABAJO ---
@@ -74,6 +76,20 @@ const InicioComponent = () => {
 
         fetchData();
     }, []); 
+
+    useEffect(() => {
+        const fetchVentasDelMes = async () => {
+            try {
+                const ventasResponse = await VentaServicio.contarVentasDelMes();
+                setVentasDelMes(ventasResponse.data.count || 0);
+            } catch (error) {
+                console.error("Error al cargar las ventas del mes:", error);
+                setVentasDelMes(0);
+            }
+        };
+
+        fetchVentasDelMes();
+    }, []);
 
 
     // --- ESTILOS (MANTENIDOS) ---
@@ -144,6 +160,13 @@ const InicioComponent = () => {
             icon: FaTools, 
             color: capitalDeTrabajo !== null && capitalDeTrabajo > 0 ? '#ffc107' : (capitalDeTrabajo !== null && capitalDeTrabajo < 0 ? '#E74C3C' : '#5A6C7D')
         },
+        {
+            title: "Ventas del Mes",
+            value: ventasDelMes === null ? '...' : ventasDelMes,
+            icon: FaShoppingCart,
+            color: '#2ECC71',
+            prefix: ''
+        },
     ];
 
 
@@ -173,7 +196,7 @@ const InicioComponent = () => {
                 
                 <div className="row g-4 mb-5">
                     {kpis.map((kpi, index) => (
-                        <div className="col-lg-3 col-md-6" key={index}>
+                        <div className="col-lg-2 col-md-2" key={index}>
                             <div 
                                 style={styles.kpiCard}
                                 className="shadow-sm" 
@@ -194,7 +217,8 @@ const InicioComponent = () => {
                                     {kpi.title}
                                 </h4>
                                 <p style={{ fontSize: '1.8rem', fontWeight: '700', color: '#2C3E50', margin: 0 }}>
-                                    $ {kpi.value}
+                                    {kpi.prefix !== '' && '$ '}
+                                    {kpi.value}
                                 </p>
                             </div>
                         </div>

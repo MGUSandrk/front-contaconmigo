@@ -3,6 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import InicioComponent from '../dashboard/InicioComponent';
 import PlanDeCuentasComponent from '../contabilidad/PlanDeCuentasComponent';
 import PlanDeCuentasServicio from '../../servicios/PlanDeCuentasServicio';
+import VentaServicio from '../../servicios/VentaServicio';
 
 jest.mock('../dashboard/SideBarComponent', () => () => <aside data-testid="main-sidebar" />);
 jest.mock('../contabilidad/SidebarCuentasComponent', () => () => <aside data-testid="accounts-sidebar" />);
@@ -13,9 +14,14 @@ jest.mock('../../servicios/PlanDeCuentasServicio', () => ({
     getResultado: jest.fn(),
 }));
 
+jest.mock('../../servicios/VentaServicio', () => ({
+    contarVentasDelMes: jest.fn(),
+}));
+
 beforeEach(() => {
     PlanDeCuentasServicio.getSaldoCuenta.mockResolvedValue({ data: { balance: 0 } });
     PlanDeCuentasServicio.getResultado.mockResolvedValue({ data: { results: 0 } });
+    VentaServicio.contarVentasDelMes.mockResolvedValue({ data: { count: 12 } });
 });
 
 test('inicio mantiene el layout del sidebar a pantalla completa', async () => {
@@ -44,4 +50,16 @@ test('plan de cuentas mantiene sus sidebars a pantalla completa', () => {
     expect(screen.getByTestId('main-sidebar').parentElement).toHaveStyle({
         minHeight: 'var(--app-content-min-height)',
     });
+});
+
+test('inicio muestra el mosaico de ventas del mes', async () => {
+    render(
+        <MemoryRouter>
+            <InicioComponent />
+        </MemoryRouter>
+    );
+
+    expect(await screen.findByText('Ventas del Mes')).toBeInTheDocument();
+    expect(screen.getByText('12')).toBeInTheDocument();
+    expect(VentaServicio.contarVentasDelMes).toHaveBeenCalled();
 });

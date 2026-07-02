@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FaReceipt, FaSpinner } from 'react-icons/fa';
+import { FaFileInvoice, FaReceipt, FaSpinner } from 'react-icons/fa';
 import SideBarComponent from '../dashboard/SideBarComponent';
 import VentaServicio from '../../servicios/VentaServicio';
 
@@ -38,6 +38,8 @@ const ListarVentasComponent = () => {
     const [ventas, setVentas] = useState([]);
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState('');
+    const [facturaError, setFacturaError] = useState('');
+    const [facturaCargandoId, setFacturaCargandoId] = useState(null);
 
     useEffect(() => {
         setCargando(true);
@@ -56,6 +58,28 @@ const ListarVentasComponent = () => {
                 setCargando(false);
             });
     }, []);
+
+    const abrirFactura = (idVenta) => {
+        setFacturaError('');
+        setFacturaCargandoId(idVenta);
+
+        VentaServicio.obtenerFactura(idVenta)
+            .then((response) => {
+                const pdfUrl = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+                window.open(pdfUrl, '_blank', 'noopener,noreferrer');
+
+                setTimeout(() => {
+                    window.URL.revokeObjectURL(pdfUrl);
+                }, 60000);
+            })
+            .catch((err) => {
+                console.error(err);
+                setFacturaError(err.response?.data?.message || 'Error al abrir la factura.');
+            })
+            .finally(() => {
+                setFacturaCargandoId(null);
+            });
+    };
 
     return (
         <div className='d-flex' style={{ backgroundColor: BACKGROUND_COLOR, minHeight: 'var(--app-content-min-height)' }}>
@@ -88,32 +112,55 @@ const ListarVentasComponent = () => {
                                     <p className='ms-3 pt-1' style={{ color: TEXT_COLOR }}>Cargando ventas...</p>
                                 </div>
                             ) : ventas.length > 0 ? (
-                                <div className='table-responsive'>
-                                    <table className='table table-bordered table-striped table-hover' style={{ fontSize: '0.95rem' }}>
-                                        <thead style={{ backgroundColor: PRIMARY_COLOR, color: TEXT_COLOR }}>
-                                            <tr>
-                                                <th>ID</th>
-                                                <th>Fecha</th>
-                                                <th>Cliente</th>
-                                                <th>Vendedor</th>
-                                                <th>Entidad</th>
-                                                <th className='text-end'>Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {ventas.map(venta => (
-                                                <tr key={venta.id}>
-                                                    <td>{formatEmpty(venta.id)}</td>
-                                                    <td>{formatDate(venta.dateCreated)}</td>
-                                                    <td>{formatEmpty(venta.clientFullName)}</td>
-                                                    <td>{formatEmpty(venta.sellerUsername)}</td>
-                                                    <td>{formatEmpty(venta.entityName)}</td>
-                                                    <td className='text-end'>{formatCurrency(venta.totalPrice)}</td>
+                                <>
+                                    {facturaError && (
+                                        <div className='alert alert-danger mb-4' role='alert'>
+                                            {facturaError}
+                                        </div>
+                                    )}
+                                    <div className='table-responsive'>
+                                        <table className='table table-bordered table-striped table-hover' style={{ fontSize: '0.95rem' }}>
+                                            <thead style={{ backgroundColor: PRIMARY_COLOR, color: TEXT_COLOR }}>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>Fecha</th>
+                                                    <th>Cliente</th>
+                                                    <th>Vendedor</th>
+                                                    <th>Entidad</th>
+                                                    <th className='text-end'>Total</th>
+                                                    <th className='text-center'>Factura</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                            </thead>
+                                            <tbody>
+                                                {ventas.map(venta => (
+                                                    <tr key={venta.id}>
+                                                        <td>{formatEmpty(venta.id)}</td>
+                                                        <td>{formatDate(venta.dateCreated)}</td>
+                                                        <td>{formatEmpty(venta.clientFullName)}</td>
+                                                        <td>{formatEmpty(venta.sellerUsername)}</td>
+                                                        <td>{formatEmpty(venta.entityName)}</td>
+                                                        <td className='text-end'>{formatCurrency(venta.totalPrice)}</td>
+                                                        <td className='text-center'>
+                                                            <button
+                                                                type='button'
+                                                                className='btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-2'
+                                                                onClick={() => abrirFactura(venta.id)}
+                                                                disabled={facturaCargandoId === venta.id}
+                                                            >
+                                                                {facturaCargandoId === venta.id ? (
+                                                                    <FaSpinner className='fa-spin' />
+                                                                ) : (
+                                                                    <FaFileInvoice />
+                                                                )}
+                                                                Factura
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </>
                             ) : (
                                 <div className='alert alert-info mt-3' role='alert'>
                                     No hay ventas registradas.
