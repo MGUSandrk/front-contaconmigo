@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaCreditCard, FaPlus, FaSave, FaShoppingCart, FaTimesCircle, FaTrash } from 'react-icons/fa';
+import { FaCreditCard, FaPlus, FaSave, FaShoppingCart, FaTimesCircle, FaTrash, FaCartPlus, FaUserPlus } from 'react-icons/fa';
 import SideBarComponent from '../dashboard/SideBarComponent';
 import ClienteServicio from '../../servicios/ClienteServicio';
 import ProductoServicio from '../../servicios/ProductoServicio';
 import PaymentTypeServicio from '../../servicios/PaymentTypeServicio';
 import VentaServicio from '../../servicios/VentaServicio';
+// Importación necesaria para el modal de clientes
+import { DOCUMENT_TYPES, VAT_CONDITIONS, isFiscalDataRequired } from '../../utiles/fiscalOptions';
 
 const PRIMARY_COLOR = '#A8DADC';
 const TEXT_COLOR = '#2C3E50';
@@ -13,9 +15,7 @@ const BACKGROUND_COLOR = '#F8F9FA';
 const CARD_COLOR = '#FFFFFF';
 
 const normalizeNumberInput = (value) => value.replace(',', '.');
-
 const roundToCents = (value) => Math.round((value + Number.EPSILON) * 100) / 100;
-
 const formatCurrency = (value) => {
     return roundToCents(value).toLocaleString('es-AR', {
         style: 'currency',
@@ -29,20 +29,41 @@ const AddVentaComponent = () => {
     const [clients, setClients] = useState([]);
     const [products, setProducts] = useState([]);
     const [paymentTypes, setPaymentTypes] = useState([]);
+    
+    // Autocomplete Clientes
     const [clientSearch, setClientSearch] = useState('');
-    const [productSearch, setProductSearch] = useState('');
+    const [showClientDropdown, setShowClientDropdown] = useState(false);
     const [selectedClientId, setSelectedClientId] = useState('');
+    
+    // Autocomplete Productos
+    const [productSearch, setProductSearch] = useState('');
+    const [showProductDropdown, setShowProductDropdown] = useState(false);
     const [selectedProductId, setSelectedProductId] = useState('');
+    
     const [productQuantity, setProductQuantity] = useState('1');
     const [saleProducts, setSaleProducts] = useState([]);
+    
     const [selectedTypePaymentId, setSelectedTypePaymentId] = useState('');
     const [paymentAmount, setPaymentAmount] = useState('');
     const [payments, setPayments] = useState([]);
+    
+    // Descuento en Porcentaje (0 a 100)
+    const [discountPercentage, setDiscountPercentage] = useState('');
+
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
 
     const navigate = useNavigate();
+
+    // --- ESTADOS PARA MODAL DE NUEVO CLIENTE ---
+    const [showClientModal, setShowClientModal] = useState(false);
+    const [newClient, setNewClient] = useState({
+        fullName: '', email: '', cuit: '', vatCondition: '', documentType: '', documentNumber: '', commercialAddress: ''
+    });
+    const [isSavingClient, setIsSavingClient] = useState(false);
+    const [clientError, setClientError] = useState('');
+    const fiscalDataRequired = isFiscalDataRequired(newClient.vatCondition);
 
     useEffect(() => {
         setIsLoading(true);
@@ -60,21 +81,15 @@ const AddVentaComponent = () => {
             })
             .catch((err) => {
                 console.error(err);
-                setClients([]);
-                setProducts([]);
-                setPaymentTypes([]);
-                setError(err.response?.data?.message || 'No se pudieron cargar los datos para registrar la venta.');
+                setError(err.response?.data?.message || 'No se pudieron cargar los datos.');
             })
-            .finally(() => {
-                setIsLoading(false);
-            });
+            .finally(() => setIsLoading(false));
     }, []);
 
     const filteredClients = useMemo(() => {
-        const search = clientSearch.trim().toLowerCase();
-        if (!search) {
-            return clients;
-        }
+        // Agregamos (clientSearch || '') para que si alguna vez es undefined, no falle el trim()
+        const search = (clientSearch || '').toString().trim().toLowerCase();
+        if (!search) return clients;
         return clients.filter(client => (client.fullName || '').toLowerCase().includes(search));
     }, [clients, clientSearch]);
 
@@ -83,62 +98,49 @@ const AddVentaComponent = () => {
         const availableProducts = products.filter(product => {
             return !saleProducts.some(item => String(item.idProduct) === String(product.id));
         });
-
-        if (!search) {
-            return availableProducts;
-        }
-
+        if (!search) return availableProducts;
         return availableProducts.filter(product => (product.name || '').toLowerCase().includes(search));
     }, [products, productSearch, saleProducts]);
 
-    const saleTotal = roundToCents(saleProducts.reduce((total, product) => {
+    // LÓGICA DE TOTALES CON PORCENTAJE DE DESCUENTO
+    const saleSubtotal = roundToCents(saleProducts.reduce((total, product) => {
         return total + ((parseFloat(product.salePrice) || 0) * (parseInt(product.quantity, 10) || 0));
     }, 0));
+    
+    const parsedDiscountPercentage = parseInt(discountPercentage, 10) || 0;
+    const discountAmount = roundToCents(saleSubtotal * (parsedDiscountPercentage / 100));
+    const saleTotal = roundToCents(saleSubtotal - discountAmount);
 
     const paymentsTotal = roundToCents(payments.reduce((total, payment) => {
         return total + (parseFloat(payment.amount) || 0);
     }, 0));
-
+    
     const pendingTotal = roundToCents(saleTotal - paymentsTotal);
+    
     const hasInvalidQuantity = saleProducts.some(product => {
         const quantity = parseInt(product.quantity, 10);
         return isNaN(quantity) || quantity <= 0;
     });
-    const canSaveSale = selectedClientId && saleProducts.length > 0 && !hasInvalidQuantity && payments.length > 0 && saleTotal > 0 && pendingTotal === 0;
 
+    const canSaveSale = selectedClientId && saleProducts.length > 0 && !hasInvalidQuantity && payments.length > 0 && saleTotal >= 0 && pendingTotal === 0;
+
+    // Handlers Venta
     const handleAddProduct = () => {
-        if (!selectedProductId) {
-            setError('Debe seleccionar un producto.');
-            return;
-        }
-
+        if (!selectedProductId) return setError('Debe seleccionar un producto.');
         const quantity = parseInt(productQuantity, 10);
-        if (productQuantity === '' || isNaN(quantity) || quantity <= 0) {
-            setError('La cantidad debe ser mayor a 0.');
-            return;
-        }
-
-        if (saleProducts.some(product => String(product.idProduct) === String(selectedProductId))) {
-            setError('Ese producto ya fue agregado.');
-            return;
-        }
+        if (productQuantity === '' || isNaN(quantity) || quantity <= 0) return setError('La cantidad debe ser mayor a 0.');
 
         const selectedProduct = products.find(product => String(product.id) === String(selectedProductId));
-        if (!selectedProduct) {
-            setError('No se encontro el producto seleccionado.');
-            return;
-        }
+        if (!selectedProduct) return setError('No se encontro el producto seleccionado.');
 
-        setSaleProducts([
-            ...saleProducts,
-            {
-                idProduct: Number(selectedProduct.id),
-                name: selectedProduct.name,
-                salePrice: parseFloat(selectedProduct.salePrice) || 0,
-                quantity,
-            },
-        ]);
+        setSaleProducts([...saleProducts, {
+            idProduct: Number(selectedProduct.id),
+            name: selectedProduct.name,
+            salePrice: parseFloat(selectedProduct.salePrice) || 0,
+            quantity,
+        }]);
         setSelectedProductId('');
+        setProductSearch(''); 
         setProductQuantity('1');
         setError('');
     };
@@ -146,126 +148,117 @@ const AddVentaComponent = () => {
     const handleProductQuantityChange = (idProduct, value) => {
         const cleanValue = value.replace(/\D/g, '');
         setSaleProducts(saleProducts.map(product => {
-            if (String(product.idProduct) !== String(idProduct)) {
-                return product;
-            }
-            return {
-                ...product,
-                quantity: cleanValue,
-            };
+            if (String(product.idProduct) !== String(idProduct)) return product;
+            return { ...product, quantity: cleanValue };
         }));
-        setError('');
     };
 
-    const handleRemoveProduct = (idProduct) => {
-        setSaleProducts(saleProducts.filter(product => String(product.idProduct) !== String(idProduct)));
-        setError('');
-    };
-
-    const handlePaymentAmountChange = (event) => {
-        setPaymentAmount(normalizeNumberInput(event.target.value));
-        setError('');
-    };
-
+    const handleRemoveProduct = (idProduct) => setSaleProducts(saleProducts.filter(p => String(p.idProduct) !== String(idProduct)));
+    
     const handleAddPayment = () => {
-        if (!selectedTypePaymentId) {
-            setError('Debe seleccionar un metodo de pago.');
-            return;
-        }
-
+        if (!selectedTypePaymentId) return setError('Debe seleccionar un metodo de pago.');
         const parsedAmount = parseFloat(paymentAmount);
-        if (paymentAmount === '' || isNaN(parsedAmount) || parsedAmount <= 0) {
-            setError('El monto del pago debe ser mayor a 0.');
-            return;
-        }
-
+        if (paymentAmount === '' || isNaN(parsedAmount) || parsedAmount <= 0) return setError('El monto del pago debe ser mayor a 0.');
+        
         if (payments.some(payment => String(payment.typePaymentId) === String(selectedTypePaymentId))) {
-            setError('Ese metodo de pago ya fue agregado.');
-            return;
+            return setError('Ese metodo de pago ya fue agregado.');
         }
 
         const nextPaymentsTotal = roundToCents(paymentsTotal + parsedAmount);
-        if (saleTotal > 0 && nextPaymentsTotal > saleTotal) {
-            setError('La suma de pagos no puede superar el total de la venta.');
-            return;
-        }
+        if (saleTotal > 0 && nextPaymentsTotal > saleTotal) return setError('La suma de pagos no puede superar el total de la venta.');
 
-        const selectedPaymentType = paymentTypes.find(paymentType => String(paymentType.id) === String(selectedTypePaymentId));
-
-        setPayments([
-            ...payments,
-            {
-                typePaymentId: Number(selectedTypePaymentId),
-                type: selectedPaymentType?.type || `Metodo #${selectedTypePaymentId}`,
-                amount: paymentAmount,
-            },
-        ]);
+        const selectedPaymentType = paymentTypes.find(pt => String(pt.id) === String(selectedTypePaymentId));
+        setPayments([...payments, {
+            typePaymentId: Number(selectedTypePaymentId),
+            type: selectedPaymentType?.type || `Metodo #${selectedTypePaymentId}`,
+            amount: paymentAmount,
+        }]);
         setSelectedTypePaymentId('');
         setPaymentAmount('');
         setError('');
     };
 
-    const handleRemovePayment = (typePaymentId) => {
-        setPayments(payments.filter(payment => String(payment.typePaymentId) !== String(typePaymentId)));
-        setError('');
-    };
-
-    const validateSale = () => {
-        if (!selectedClientId) {
-            return 'Debe seleccionar un cliente.';
-        }
-
-        if (saleProducts.length === 0) {
-            return 'Debe agregar al menos un producto.';
-        }
-
-        if (hasInvalidQuantity) {
-            return 'Todas las cantidades deben ser mayores a 0.';
-        }
-
-        if (payments.length === 0) {
-            return 'Debe agregar al menos un pago.';
-        }
-
-        if (pendingTotal !== 0) {
-            return 'La suma de los pagos debe coincidir con el total de la venta.';
-        }
-
-        return '';
-    };
+    const handleRemovePayment = (typePaymentId) => setPayments(payments.filter(p => String(p.typePaymentId) !== String(typePaymentId)));
 
     const guardarVenta = async (event) => {
         event.preventDefault();
         setError('');
 
-        const validationError = validateSale();
-        if (validationError) {
-            setError(validationError);
-            return;
-        }
+        if (parsedDiscountPercentage > 100 || parsedDiscountPercentage < 0) return setError('El descuento debe ser un porcentaje entre 0 y 100.');
+        if (pendingTotal !== 0) return setError('La suma de los pagos debe coincidir con el total de la venta.');
 
+        // ESTRUCTURA DEL BODY ACTUALIZADA
         const sale = {
-            idClient: Number(selectedClientId),
-            products: saleProducts.map(product => ({
-                idProduct: Number(product.idProduct),
+            clientId: Number(selectedClientId),
+            items: saleProducts.map(product => ({
+                productId: Number(product.idProduct),
                 quantity: Number(product.quantity),
             })),
-            payments: payments.map(payment => ({
-                id: Number(payment.typePaymentId),
-                amount: Number(payment.amount),
-            })),
+            paymentMethod: payments[0].type, // Momentáneo hasta que el backend pueda recibir el array de metodos de pago
+            // payments: payments.map(payment => ({
+            //     id: Number(payment.typePaymentId),
+            //     amount: Number(payment.amount),
+            // })),
+            installments: 1, 
+            discount: parsedDiscountPercentage
         };
-
+        
         setIsSaving(true);
-
         try {
             await VentaServicio.crearVenta(sale);
             navigate('/inicio');
         } catch (err) {
-            console.error(err);
             setError(err.response?.data?.message || 'Ocurrio un error al guardar la venta.');
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    // Handler Guardar Cliente desde Modal
+    const handleGuardarNuevoCliente = async (e) => {
+        e.preventDefault();
+        setClientError('');
+
+        // Validaciones básicas del cliente
+        if (!newClient.fullName.trim() || !newClient.email.trim() || !newClient.vatCondition) {
+            return setClientError('Complete los campos obligatorios del cliente.');
+        }
+
+        const optionalText = (value) => value.trim() ? value.trim() : null;
+        const clientData = {
+            fullName: newClient.fullName.trim(),
+            email: newClient.email.trim(),
+            cuit: newClient.cuit.trim(),
+            vatCondition: newClient.vatCondition,
+            documentType: newClient.documentType || null,
+            documentNumber: optionalText(newClient.documentNumber),
+            commercialAddress: optionalText(newClient.commercialAddress),
+        };
+
+        setIsSavingClient(true);
+        try {
+            const resp = await ClienteServicio.crearCliente(clientData);
+            
+            // Volvemos a pedir la lista de clientes para asegurarnos de tener los datos reales y el ID generado
+            const clientsResponse = await ClienteServicio.listarClientes();
+            const clientesActualizados = clientsResponse.data || [];
+            setClients(clientesActualizados);
+
+            // Intentamos obtener el ID del cliente recién creado (ya sea de la respuesta o buscándolo en la nueva lista)
+            const idCreado = resp.data?.id || clientesActualizados.find(c => c.email === clientData.email)?.id;
+
+            if (idCreado) {
+                setSelectedClientId(idCreado);
+            }
+            // Usamos newClient.fullName (que sabemos que tiene texto) en lugar de depender de la respuesta del backend
+            setClientSearch(clientData.fullName); 
+            
+            setShowClientModal(false);
+            setNewClient({ fullName: '', email: '', cuit: '', vatCondition: '', documentType: '', documentNumber: '', commercialAddress: '' });
+        } catch (err) {
+            setClientError(err.response?.data?.message || 'Error al guardar cliente.');
+        } finally {
+            setIsSavingClient(false);
         }
     };
 
@@ -276,135 +269,105 @@ const AddVentaComponent = () => {
             <div className='flex-grow-1 p-0 p-md-5'>
                 <div className='col-lg-10 offset-lg-1'>
                     <div className='card shadow-lg' style={{ borderRadius: '15px', backgroundColor: CARD_COLOR }}>
-                        <div className='card-header text-center d-flex align-items-center justify-content-center' style={{
-                            backgroundColor: PRIMARY_COLOR,
-                            color: TEXT_COLOR,
-                            borderTopLeftRadius: '15px',
-                            borderTopRightRadius: '15px',
-                            padding: '1.5rem 0'
-                        }}>
+                        <div className='card-header text-center d-flex align-items-center justify-content-center' style={{ backgroundColor: PRIMARY_COLOR, color: TEXT_COLOR, borderTopLeftRadius: '15px', borderTopRightRadius: '15px', padding: '1.5rem 0' }}>
                             <FaShoppingCart size={28} className='me-3' />
-                            <h2 className='d-inline-block m-0' style={{ fontWeight: '700' }}>
-                                Registro de Venta
-                            </h2>
+                            <h2 className='d-inline-block m-0' style={{ fontWeight: '700' }}>Registro de Venta</h2>
                         </div>
 
                         <div className='card-body p-4 p-md-5'>
                             <form onSubmit={guardarVenta}>
+                                {/* CLIENTE Y PRODUCTOS OMITIDOS POR BREVEDAD (Se mantienen igual que en la respuesta anterior) */}
+                                
+                                {/* SECCIÓN CLIENTES CON AUTOCOMPLETE Y MODAL */}
                                 <h4 className='mb-3' style={{ color: TEXT_COLOR }}>Cliente</h4>
-
-                                <div className='row mb-4'>
-                                    <div className='form-group col-md-5 mb-3 mb-md-0'>
-                                        <label htmlFor='clientSearch' className='form-label' style={{ fontWeight: '600', color: TEXT_COLOR }}>
-                                            Buscar Cliente:
-                                        </label>
+                                <div className='row mb-4 align-items-end'>
+                                    <div className='form-group col-md-8 position-relative'>
+                                        <label className='form-label' style={{ fontWeight: '600', color: TEXT_COLOR }}>Seleccionar Cliente:</label>
                                         <input
-                                            id='clientSearch'
                                             type='text'
                                             className='form-control'
-                                            placeholder='Buscar por nombre'
+                                            placeholder='Escriba para buscar cliente...'
                                             value={clientSearch}
-                                            onChange={(event) => setClientSearch(event.target.value)}
-                                            disabled={isSaving || isLoading}
+                                            onChange={(e) => {
+                                                setClientSearch(e.target.value);
+                                                setSelectedClientId('');
+                                                setShowClientDropdown(true);
+                                            }}
+                                            onFocus={() => setShowClientDropdown(true)}
+                                            onBlur={() => setTimeout(() => setShowClientDropdown(false), 200)}
                                             style={{ borderColor: PRIMARY_COLOR }}
                                         />
+                                        {showClientDropdown && filteredClients.length > 0 && (
+                                            <ul className='list-group position-absolute w-100' style={{ zIndex: 1000, maxHeight: '200px', overflowY: 'auto' }}>
+                                                {filteredClients.map(client => (
+                                                    <li key={client.id} className='list-group-item list-group-item-action' style={{ cursor: 'pointer' }}
+                                                        onMouseDown={() => {
+                                                            setSelectedClientId(client.id);
+                                                            setClientSearch(client.fullName);
+                                                            setShowClientDropdown(false);
+                                                        }}>
+                                                        {client.fullName}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
                                     </div>
-                                    <div className='form-group col-md-7'>
-                                        <label htmlFor='clientId' className='form-label' style={{ fontWeight: '600', color: TEXT_COLOR }}>
-                                            Cliente:
-                                        </label>
-                                        <select
-                                            id='clientId'
-                                            className='form-select'
-                                            value={selectedClientId}
-                                            onChange={(event) => {
-                                                setSelectedClientId(event.target.value);
-                                                setError('');
-                                            }}
-                                            disabled={isSaving || isLoading}
-                                            style={{ borderColor: PRIMARY_COLOR }}
-                                        >
-                                            <option value=''>{isLoading ? 'Cargando clientes...' : '-- Seleccione un cliente --'}</option>
-                                            {filteredClients.map(client => (
-                                                <option key={client.id} value={client.id}>
-                                                    {client.fullName}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <h4 className='mb-3' style={{ color: TEXT_COLOR }}>Productos</h4>
-
-                                <div className='row g-3 align-items-end mb-3'>
-                                    <div className='form-group col-md-4'>
-                                        <label htmlFor='productSearch' className='form-label' style={{ fontWeight: '600', color: TEXT_COLOR }}>
-                                            Buscar Producto:
-                                        </label>
-                                        <input
-                                            id='productSearch'
-                                            type='text'
-                                            className='form-control'
-                                            placeholder='Buscar por nombre'
-                                            value={productSearch}
-                                            onChange={(event) => setProductSearch(event.target.value)}
-                                            disabled={isSaving || isLoading}
-                                            style={{ borderColor: PRIMARY_COLOR }}
-                                        />
-                                    </div>
-                                    <div className='form-group col-md-4'>
-                                        <label htmlFor='productId' className='form-label' style={{ fontWeight: '600', color: TEXT_COLOR }}>
-                                            Producto:
-                                        </label>
-                                        <select
-                                            id='productId'
-                                            className='form-select'
-                                            value={selectedProductId}
-                                            onChange={(event) => {
-                                                setSelectedProductId(event.target.value);
-                                                setError('');
-                                            }}
-                                            disabled={isSaving || isLoading}
-                                            style={{ borderColor: PRIMARY_COLOR }}
-                                        >
-                                            <option value=''>{isLoading ? 'Cargando productos...' : '-- Seleccione un producto --'}</option>
-                                            {filteredProducts.map(product => (
-                                                <option key={product.id} value={product.id}>
-                                                    {product.name} - {formatCurrency(product.salePrice)}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className='form-group col-md-2'>
-                                        <label htmlFor='productQuantity' className='form-label' style={{ fontWeight: '600', color: TEXT_COLOR }}>
-                                            Cantidad:
-                                        </label>
-                                        <input
-                                            id='productQuantity'
-                                            type='number'
-                                            className='form-control'
-                                            min='1'
-                                            value={productQuantity}
-                                            onChange={(event) => {
-                                                setProductQuantity(event.target.value.replace(/\D/g, ''));
-                                                setError('');
-                                            }}
-                                            disabled={isSaving || isLoading}
-                                            style={{ borderColor: PRIMARY_COLOR }}
-                                        />
-                                    </div>
-                                    <div className='col-md-2'>
-                                        <button
-                                            type='button'
-                                            className='btn btn-outline-secondary w-100'
-                                            onClick={handleAddProduct}
-                                            disabled={isSaving || isLoading}
-                                        >
-                                            <FaPlus className='me-2' /> Agregar Producto
+                                    <div className='col-md-4'>
+                                        <button type='button' className='btn btn-outline-primary w-100' onClick={() => setShowClientModal(true)}>
+                                            <FaUserPlus className='me-2' /> Nuevo Cliente
                                         </button>
                                     </div>
                                 </div>
 
+                                {/* SECCIÓN PRODUCTOS CON AUTOCOMPLETE */}
+                                <h4 className='mb-3' style={{ color: TEXT_COLOR }}>Productos</h4>
+                                <div className='row g-3 align-items-end mb-3'>
+                                    <div className='form-group col-md-6 position-relative'>
+                                        <label className='form-label' style={{ fontWeight: '600', color: TEXT_COLOR }}>Seleccionar Producto:</label>
+                                        <input
+                                            type='text'
+                                            className='form-control'
+                                            placeholder='Escriba para buscar producto...'
+                                            value={productSearch}
+                                            onChange={(e) => {
+                                                setProductSearch(e.target.value);
+                                                setSelectedProductId('');
+                                                setShowProductDropdown(true);
+                                            }}
+                                            onFocus={() => setShowProductDropdown(true)}
+                                            onBlur={() => setTimeout(() => setShowProductDropdown(false), 200)}
+                                            style={{ borderColor: PRIMARY_COLOR }}
+                                        />
+                                        {showProductDropdown && filteredProducts.length > 0 && (
+                                            <ul className='list-group position-absolute w-100' style={{ zIndex: 1000, maxHeight: '200px', overflowY: 'auto' }}>
+                                                {filteredProducts.map(product => (
+                                                    <li key={product.id} className='list-group-item list-group-item-action' style={{ cursor: 'pointer' }}
+                                                        onMouseDown={() => {
+                                                            setSelectedProductId(product.id);
+                                                            setProductSearch(`${product.name} - ${formatCurrency(product.salePrice)}`);
+                                                            setShowProductDropdown(false);
+                                                        }}>
+                                                        {product.name} - {formatCurrency(product.salePrice)}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+                                    </div>
+                                    <div className='form-group col-md-2'>
+                                        <label className='form-label' style={{ fontWeight: '600', color: TEXT_COLOR }}>Cant:</label>
+                                        <input type='number' className='form-control' min='1' value={productQuantity}
+                                            onChange={(e) => setProductQuantity(e.target.value.replace(/\D/g, ''))}
+                                            style={{ borderColor: PRIMARY_COLOR }}
+                                        />
+                                    </div>
+                                    <div className='col-md-4'>
+                                        <button type='button' className='btn btn-outline-secondary w-100' onClick={handleAddProduct}>
+                                            <FaCartPlus className='me-2' /> Añadir a la Venta
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* LISTADO DE PRODUCTOS */}
                                 {saleProducts.length > 0 && (
                                     <div className='table-responsive mb-4' style={{ border: '1px solid #E0E0E0', borderRadius: '8px' }}>
                                         <table className='table table-hover mb-0'>
@@ -423,32 +386,14 @@ const AddVentaComponent = () => {
                                                         <td>{product.name}</td>
                                                         <td className='text-end'>{formatCurrency(product.salePrice)}</td>
                                                         <td>
-                                                            <label className='visually-hidden' htmlFor={`quantity-${product.idProduct}`}>
-                                                                Cantidad de {product.name}:
-                                                            </label>
-                                                            <input
-                                                                id={`quantity-${product.idProduct}`}
-                                                                type='number'
-                                                                className='form-control text-center'
-                                                                min='1'
-                                                                value={product.quantity}
-                                                                onChange={(event) => handleProductQuantityChange(product.idProduct, event.target.value)}
-                                                                disabled={isSaving}
-                                                            />
+                                                            <input type='number' className='form-control text-center' min='1' value={product.quantity}
+                                                                onChange={(e) => handleProductQuantityChange(product.idProduct, e.target.value)} disabled={isSaving}/>
                                                         </td>
                                                         <td className='text-end'>
                                                             {formatCurrency((parseFloat(product.salePrice) || 0) * (parseInt(product.quantity, 10) || 0))}
                                                         </td>
                                                         <td className='text-center'>
-                                                            <button
-                                                                type='button'
-                                                                className='btn btn-sm btn-outline-danger'
-                                                                onClick={() => handleRemoveProduct(product.idProduct)}
-                                                                disabled={isSaving}
-                                                                title='Eliminar producto'
-                                                            >
-                                                                <FaTrash />
-                                                            </button>
+                                                            <button type='button' className='btn btn-sm btn-outline-danger' onClick={() => handleRemoveProduct(product.idProduct)}><FaTrash /></button>
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -457,64 +402,41 @@ const AddVentaComponent = () => {
                                     </div>
                                 )}
 
+                                {/* SECCIÓN DESCUENTO Y PAGOS */}
                                 <div className='border-top pt-4 mb-4'>
                                     <h4 className='mb-3 d-flex align-items-center' style={{ color: TEXT_COLOR }}>
                                         <FaCreditCard className='me-2' /> Pagos de la Venta
                                     </h4>
 
+                                    {/* NUEVO INPUT DE DESCUENTO POR PORCENTAJE */}
                                     <div className='row g-3 align-items-end mb-3'>
-                                        <div className='form-group col-md-5'>
-                                            <label htmlFor='typePaymentId' className='form-label' style={{ fontWeight: '600', color: TEXT_COLOR }}>
-                                                Metodo de Pago:
-                                            </label>
-                                            <select
-                                                id='typePaymentId'
-                                                className='form-select'
-                                                value={selectedTypePaymentId}
-                                                onChange={(event) => {
-                                                    setSelectedTypePaymentId(event.target.value);
-                                                    setError('');
-                                                }}
-                                                disabled={isSaving || isLoading}
-                                                style={{ borderColor: PRIMARY_COLOR }}
-                                            >
-                                                <option value=''>{isLoading ? 'Cargando metodos...' : '-- Seleccione un metodo --'}</option>
-                                                {paymentTypes
-                                                    .filter(paymentType => !payments.some(payment => String(payment.typePaymentId) === String(paymentType.id)))
-                                                    .map(paymentType => (
-                                                        <option key={paymentType.id} value={paymentType.id}>
-                                                            {paymentType.type}
-                                                        </option>
-                                                    ))}
+                                        <div className='form-group col-md-4'>
+                                            <label className='form-label' style={{ fontWeight: '600', color: TEXT_COLOR }}>Descuento (%):</label>
+                                            <input type='number' className='form-control' placeholder='Ej: 20' value={discountPercentage}
+                                                onChange={(e) => setDiscountPercentage(e.target.value.replace(/\D/g, ''))} // Solo números enteros
+                                                step='1' min='0' max='100'
+                                                style={{ borderColor: PRIMARY_COLOR }} />
+                                        </div>
+                                    </div>
+
+                                    <div className='row g-3 align-items-end mb-3'>
+                                        <div className='form-group col-md-4'>
+                                            <label className='form-label' style={{ fontWeight: '600', color: TEXT_COLOR }}>Metodo de Pago:</label>
+                                            <select className='form-select' value={selectedTypePaymentId} onChange={(e) => setSelectedTypePaymentId(e.target.value)} style={{ borderColor: PRIMARY_COLOR }}>
+                                                <option value=''>-- Seleccione --</option>
+                                                {paymentTypes.filter(pt => !payments.some(p => String(p.typePaymentId) === String(pt.id))).map(pt => (
+                                                    <option key={pt.id} value={pt.id}>{pt.type}</option>
+                                                ))}
                                             </select>
                                         </div>
-
                                         <div className='form-group col-md-4'>
-                                            <label htmlFor='paymentAmountSale' className='form-label' style={{ fontWeight: '600', color: TEXT_COLOR }}>
-                                                Monto del Pago:
-                                            </label>
-                                            <input
-                                                id='paymentAmountSale'
-                                                type='number'
-                                                className='form-control'
-                                                placeholder='0.00'
-                                                value={paymentAmount}
-                                                onChange={handlePaymentAmountChange}
-                                                step='0.01'
-                                                min='0.01'
-                                                disabled={isSaving || isLoading}
-                                                style={{ borderColor: PRIMARY_COLOR }}
-                                            />
+                                            <label className='form-label' style={{ fontWeight: '600', color: TEXT_COLOR }}>Monto a Pagar:</label>
+                                            <input type='number' className='form-control' placeholder='0.00' value={paymentAmount}
+                                                onChange={(e) => setPaymentAmount(normalizeNumberInput(e.target.value))} step='0.01' min='0.01' style={{ borderColor: PRIMARY_COLOR }} />
                                         </div>
-
-                                        <div className='col-md-3'>
-                                            <button
-                                                type='button'
-                                                className='btn btn-outline-secondary w-100'
-                                                onClick={handleAddPayment}
-                                                disabled={isSaving || isLoading}
-                                            >
-                                                <FaPlus className='me-2' /> Agregar Pago
+                                        <div className='col-md-4'>
+                                            <button type='button' className='btn btn-outline-secondary w-100' onClick={handleAddPayment}>
+                                                <FaPlus className='me-2' /> Incluir método de pago
                                             </button>
                                         </div>
                                     </div>
@@ -535,15 +457,7 @@ const AddVentaComponent = () => {
                                                             <td>{payment.type}</td>
                                                             <td className='text-end'>{formatCurrency(parseFloat(payment.amount) || 0)}</td>
                                                             <td className='text-center'>
-                                                                <button
-                                                                    type='button'
-                                                                    className='btn btn-sm btn-outline-danger'
-                                                                    onClick={() => handleRemovePayment(payment.typePaymentId)}
-                                                                    disabled={isSaving}
-                                                                    title='Eliminar pago'
-                                                                >
-                                                                    <FaTrash />
-                                                                </button>
+                                                                <button type='button' className='btn btn-sm btn-outline-danger' onClick={() => handleRemovePayment(payment.typePaymentId)}><FaTrash /></button>
                                                             </td>
                                                         </tr>
                                                     ))}
@@ -555,7 +469,7 @@ const AddVentaComponent = () => {
                                     <div className='row g-3'>
                                         <div className='col-md-4'>
                                             <div className='p-3 border rounded-2 bg-light'>
-                                                <div className='small text-muted'>Total venta</div>
+                                                <div className='small text-muted'>Subtotal ({parsedDiscountPercentage}% desc.)</div>
                                                 <strong style={{ color: TEXT_COLOR }}>{formatCurrency(saleTotal)}</strong>
                                             </div>
                                         </div>
@@ -579,32 +493,10 @@ const AddVentaComponent = () => {
                                 {error && <div className='alert alert-danger mt-4'>{error}</div>}
 
                                 <div className='d-grid gap-2 d-md-flex justify-content-md-end mt-4 pt-3 border-top'>
-                                    <button
-                                        className='btn btn-lg me-md-2'
-                                        type='submit'
-                                        disabled={isSaving || isLoading || !canSaveSale}
-                                        style={{
-                                            backgroundColor: PRIMARY_COLOR,
-                                            color: TEXT_COLOR,
-                                            fontWeight: '600'
-                                        }}
-                                    >
-                                        {isSaving ? (
-                                            <>
-                                                <span className='spinner-border spinner-border-sm me-2' role='status' aria-hidden='true'></span>
-                                                Guardando...
-                                            </>
-                                        ) : (
-                                            <><FaSave className='me-2' /> Guardar Venta</>
-                                        )}
+                                    <button className='btn btn-lg me-md-2' type='submit' disabled={isSaving || !canSaveSale} style={{ backgroundColor: PRIMARY_COLOR, color: TEXT_COLOR, fontWeight: '600' }}>
+                                        {isSaving ? 'Guardando...' : <><FaSave className='me-2' /> Guardar Venta</>}
                                     </button>
-
-                                    <Link
-                                        to='/inicio'
-                                        className='btn btn-secondary btn-lg'
-                                        tabIndex={isSaving ? -1 : 0}
-                                        style={isSaving ? { pointerEvents: 'none', opacity: 0.6 } : {}}
-                                    >
+                                    <Link to='/inicio' className='btn btn-secondary btn-lg'>
                                         <FaTimesCircle className='me-2' /> Cancelar
                                     </Link>
                                 </div>
@@ -613,6 +505,76 @@ const AddVentaComponent = () => {
                     </div>
                 </div>
             </div>
+
+            {/* MODAL COMPLETO PARA CREAR CLIENTE */}
+            {showClientModal && (
+                <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', overflowY: 'auto' }}>
+                    <div className="modal-dialog modal-lg modal-dialog-centered" style={{ margin: '30px auto' }}>
+                        <div className="modal-content" style={{ borderRadius: '15px' }}>
+                            <div className="modal-header" style={{ backgroundColor: PRIMARY_COLOR, color: TEXT_COLOR, borderTopLeftRadius: '15px', borderTopRightRadius: '15px' }}>
+                                <h5 className="modal-title fw-bold"><FaUserPlus className='me-2' /> Registrar Cliente Rápido</h5>
+                                <button type="button" className="btn-close" onClick={() => setShowClientModal(false)}></button>
+                            </div>
+                            <div className="modal-body p-4">
+                                <form onSubmit={handleGuardarNuevoCliente}>
+                                    <div className="row">
+                                        <div className="col-md-6 mb-3">
+                                            <label className="form-label fw-bold" style={{ color: TEXT_COLOR }}>Nombre Completo:</label>
+                                            <input type="text" className="form-control" placeholder='Ej: Ana Perez' required value={newClient.fullName} onChange={(e) => setNewClient({...newClient, fullName: e.target.value})} style={{ borderColor: PRIMARY_COLOR }} />
+                                        </div>
+                                        <div className="col-md-6 mb-3">
+                                            <label className="form-label fw-bold" style={{ color: TEXT_COLOR }}>Email:</label>
+                                            <input type="email" className="form-control" placeholder='cliente@email.com' required value={newClient.email} onChange={(e) => setNewClient({...newClient, email: e.target.value})} style={{ borderColor: PRIMARY_COLOR }} />
+                                        </div>
+                                        <div className="col-md-6 mb-3">
+                                            <label className="form-label fw-bold" style={{ color: TEXT_COLOR }}>CUIT:</label>
+                                            <input type="text" className="form-control" placeholder='20-12345678-9' value={newClient.cuit} onChange={(e) => setNewClient({...newClient, cuit: e.target.value})} style={{ borderColor: PRIMARY_COLOR }} />
+                                        </div>
+                                        <div className="col-md-6 mb-3">
+                                            <label className="form-label fw-bold" style={{ color: TEXT_COLOR }}>Condición frente al IVA:</label>
+                                            <select className="form-select" required value={newClient.vatCondition} onChange={(e) => setNewClient({...newClient, vatCondition: e.target.value})} style={{ borderColor: PRIMARY_COLOR }}>
+                                                <option value=''>-- Seleccione una condición --</option>
+                                                {VAT_CONDITIONS && VAT_CONDITIONS.map((condition) => (
+                                                    <option key={condition.value} value={condition.value}>{condition.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        
+                                        <div className="col-md-6 mb-3">
+                                            <label className="form-label fw-bold" style={{ color: TEXT_COLOR }}>Tipo de Documento:</label>
+                                            <select className="form-select" required={fiscalDataRequired} value={newClient.documentType} onChange={(e) => setNewClient({...newClient, documentType: e.target.value})} style={{ borderColor: PRIMARY_COLOR }}>
+                                                <option value=''>-- Seleccione un tipo --</option>
+                                                {DOCUMENT_TYPES && DOCUMENT_TYPES.map((type) => (
+                                                    <option key={type.value} value={type.value}>{type.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="col-md-6 mb-3">
+                                            <label className="form-label fw-bold" style={{ color: TEXT_COLOR }}>Número de Documento:</label>
+                                            <input type="text" className="form-control" placeholder='30123456789' required={fiscalDataRequired} value={newClient.documentNumber} onChange={(e) => setNewClient({...newClient, documentNumber: e.target.value})} style={{ borderColor: PRIMARY_COLOR }} />
+                                        </div>
+                                        <div className="col-md-12 mb-3">
+                                            <label className="form-label fw-bold" style={{ color: TEXT_COLOR }}>Domicilio Comercial:</label>
+                                            <input type="text" className="form-control" placeholder='Calle 123' required={fiscalDataRequired} value={newClient.commercialAddress} onChange={(e) => setNewClient({...newClient, commercialAddress: e.target.value})} style={{ borderColor: PRIMARY_COLOR }} />
+                                        </div>
+                                    </div>
+
+                                    {clientError && <div className='alert alert-danger'>{clientError}</div>}
+                                    
+                                    <div className="d-flex justify-content-end mt-3 border-top pt-3">
+                                        <button type="button" className="btn btn-secondary me-2" onClick={() => setShowClientModal(false)}>
+                                            Cancelar
+                                        </button>
+                                        <button type="submit" className="btn" style={{ backgroundColor: PRIMARY_COLOR, color: TEXT_COLOR, fontWeight: 'bold' }} disabled={isSavingClient}>
+                                            {isSavingClient ? 'Guardando...' : 'Guardar y Seleccionar'}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
